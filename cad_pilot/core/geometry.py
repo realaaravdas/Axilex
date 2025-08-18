@@ -1,6 +1,8 @@
 import cadquery as cq
 import pyvista as pv
 import io
+import tempfile
+import os
 
 class Shape:
     def __init__(self, cq_solid):
@@ -11,9 +13,19 @@ class Shape:
         if not self.cq_object:
             return None
 
-        # Export to STL bytes and load with PyVista
-        stl_bytes = self.cq_object.to_stl_bytes()
-        return pv.read_stl(io.BytesIO(stl_bytes))
+        # Create a temporary file for STL export
+        with tempfile.NamedTemporaryFile(suffix='.stl', delete=False) as temp_file:
+            temp_path = temp_file.name
+
+        try:
+            # Export to STL file and load with PyVista
+            cq.exporters.export(self.cq_object, temp_path, "STL")
+            mesh = pv.read(temp_path)
+            return mesh
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
 
     def translate(self, x, y, z):
         self.cq_object = self.cq_object.translate((x, y, z))
@@ -60,18 +72,28 @@ class Rectangle:
 class Cube(Shape):
     def __init__(self, x, y, z, size):
         # Create a Workplane, make the box, and get the Solid object
-        cq_box_solid = cq.Workplane("XY").box(size, size, size).translate((x + size/2, y + size/2, z + size/2)).val()
+        # First create the box, then translate it
+        cq_box = cq.Workplane("XY").box(size, size, size)
+        cq_box_solid = cq_box.val()  # Get the Solid object first
+        # Now translate the solid object
+        cq_box_solid = cq_box_solid.translate((x + size/2, y + size/2, z + size/2))
         super().__init__(cq_box_solid)
 
 class Sphere(Shape):
     def __init__(self, x, y, z, radius):
         # Create a Workplane, make the sphere, and get the Solid object
-        cq_sphere_solid = cq.Workplane("XY").sphere(radius).translate((x, y, z)).val()
+        cq_sphere = cq.Workplane("XY").sphere(radius)
+        cq_sphere_solid = cq_sphere.val()  # Get the Solid object first
+        # Now translate the solid object
+        cq_sphere_solid = cq_sphere_solid.translate((x, y, z))
         super().__init__(cq_sphere_solid)
 
 class Cylinder(Shape):
     def __init__(self, x, y, z, radius, height):
         # Create a Workplane, make the cylinder, and get the Solid object
         # It's created along the Z-axis.
-        cq_cylinder_solid = cq.Workplane("XY").cylinder(height, radius).translate((x, y, z + height/2)).val()
+        cq_cylinder = cq.Workplane("XY").cylinder(height, radius)
+        cq_cylinder_solid = cq_cylinder.val()  # Get the Solid object first
+        # Now translate the solid object
+        cq_cylinder_solid = cq_cylinder_solid.translate((x, y, z + height/2))
         super().__init__(cq_cylinder_solid)
