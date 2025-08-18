@@ -24,7 +24,7 @@ Transformations apply to all statements within their curly braces `{}`. They are
 
 - `translate(x, y, z) { ... }`: Moves the enclosed shapes by `(x, y, z)` units.
 - `rotate(angle, ax, ay, az) { ... }`: Rotates the enclosed shapes by `angle` degrees around the axis defined by the vector `(ax, ay, az)`.
-- `scale(x, y, z) { ... }`: Scales the enclosed shapes by factors `x`, `y`, and `z` along their respective axes.
+- `scale(x, y, z) { ... }`: Scales the enclosed shapes by factors `x`, `y`, and `z` along their respective axes. **Note:** Current implementation performs uniform scaling based on the first factor (x) due to underlying library limitations for non-uniform scaling.
 
 ## Boolean Operations
 
@@ -43,6 +43,13 @@ Modules allow you to define reusable components with parameters.
 
 - `module <name>(<param1>, <param2>, ...) { ... }`: Defines a module with a given `name` and a list of `parameters`. The body of the module contains CadPilot statements.
 - `use <name>(<value1>, <value2>, ...)`: Instantiates a module by its `name`, passing `values` for its parameters. The values can be numbers or other identifiers that resolve to numbers.
+
+## Export Capabilities
+
+CadPilot can export the generated 3D models to industry-standard formats:
+
+- **STL (.stl):** Commonly used for 3D printing.
+- **STEP (.step):** A robust format for exchanging 3D data between different CAD systems, supporting parametric information.
 
 ## Example Usage
 

@@ -2,7 +2,7 @@ from cad_pilot.parser import CadParser
 from cad_pilot.transformer import CadTransformer
 from cad_pilot.renderer.terminal_renderer import render as terminal_render
 from cad_pilot.renderer.gui_renderer import render as gui_render
-from cad_pilot.exporter import export_to_stl
+from cad_pilot.exporter import export_to_stl, export_to_step
 import argparse
 
 if __name__ == "__main__":
@@ -12,6 +12,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--file", type=str, default="examples/advanced_example.cadp",
                             help="Path to the .cadp file to compile and render.")
     arg_parser.add_argument("--export-stl", type=str, help="Export the generated model to an STL file at the specified path.")
+    arg_parser.add_argument("--export-step", type=str, help="Export the generated model to a STEP file at the specified path.")
     args = arg_parser.parse_args()
 
     parser = CadParser()
@@ -30,13 +31,16 @@ if __name__ == "__main__":
         if args.export_stl:
             export_to_stl(scene.objects, args.export_stl)
         
+        if args.export_step:
+            export_to_step(scene.objects, args.export_step)
+
         if args.renderer == "gui":
             gui_render(scene.objects)
         elif args.renderer == "terminal":
             # For terminal rendering, we'll just render the last object for simplicity
             # as complex scenes are hard to visualize in ASCII.
-            if scene.current_object and hasattr(scene.current_object, 'mesh'):
-                terminal_render(scene.current_object.mesh, scene.objects)
+            if scene.current_object and hasattr(scene.current_object, 'occt_shape'):
+                terminal_render(scene.current_object, scene.objects)
             else:
                 print("No renderable object found for terminal display.")
     else:
