@@ -9,7 +9,7 @@ CadPilot is a declarative language for defining 3D CAD models. You describe the 
 ## Data Types
 
 - **Numbers:** Floating-point numbers are used for dimensions and coordinates (e.g., `10`, `5.5`).
-- **Identifiers (CNAME):** Used for module names and parameters (e.g., `my_module`, `width`).
+- **Identifiers (CNAME):** Used for module names, parameters, and for referencing named objects in constraints (e.g., `my_module`, `width`, `part_A`).
 
 ## Basic Shapes
 
@@ -43,6 +43,24 @@ Modules allow you to define reusable components with parameters.
 
 - `module <name>(<param1>, <param2>, ...) { ... }`: Defines a module with a given `name` and a list of `parameters`. The body of the module contains CadPilot statements.
 - `use <name>(<value1>, <value2>, ...)`: Instantiates a module by its `name`, passing `values` for its parameters. The values can be numbers or other identifiers that resolve to numbers.
+
+## Constraints (Applied Relationships)
+
+CadPilot supports a set of applied constraints that directly modify the position of objects to satisfy a geometric relationship. These are applied in the order they appear in the code. Objects referenced by constraints must be named using an identifier (CNAME) when they are created (e.g., `cube(0,0,0,10) as my_cube`).
+
+- `align_x(object1_name, object2_name)`: Aligns the minimum X-coordinate of `object1_name` with the minimum X-coordinate of `object2_name`.
+- `align_y(object1_name, object2_name)`: Aligns the minimum Y-coordinate of `object1_name` with the minimum Y-coordinate of `object2_name`.
+- `align_z(object1_name, object2_name)`: Aligns the minimum Z-coordinate of `object1_name` with the minimum Z-coordinate of `object2_name`.
+
+- `center_on_x(object1_name, object2_name)`: Centers `object1_name` on `object2_name` along the X-axis.
+- `center_on_y(object1_name, object2_name)`: Centers `object1_name` on `object2_name` along the Y-axis.
+- `center_on_z(object1_name, object2_name)`: Centers `object1_name` on `object2_name` along the Z-axis.
+
+- `distance_x(object1_name, object2_name, value)`: Sets the distance between the maximum X of `object1_name` and the minimum X of `object2_name` to `value`.
+- `distance_y(object1_name, object2_name, value)`: Sets the distance between the maximum Y of `object1_name` and the minimum Y of `object2_name` to `value`.
+- `distance_z(object1_name, object2_name, value)`: Sets the distance between the maximum Z of `object1_name` and the minimum Z of `object2_name` to `value`.
+
+- `fixed(object_name)`: Marks `object_name` as fixed. In this simplified system, it primarily serves as a conceptual marker and does not prevent subsequent operations from moving the object. For a true fixed constraint, a dynamic solver would be required.
 
 ## Export Capabilities
 

@@ -3,11 +3,12 @@ from lark import Lark
 cad_grammar = r"""
     ?start: statement+
 
-    statement: shape | transform | boolean_op | module | use
+    statement: shape | transform | boolean_op | module | use | constraint
 
     shape: rect | cube | sphere | cylinder
     transform: translate | rotate | scale
     boolean_op: union | subtract
+    constraint: align_x | align_y | align_z | center_on_x | center_on_y | center_on_z | distance_x | distance_y | distance_z | fixed
 
     module: "module" CNAME "(" [CNAME ("," CNAME)*] ")" "{" statement+ "}"
     use: "use" CNAME "(" [value ("," value)*] ")"
@@ -25,6 +26,20 @@ cad_grammar = r"""
     subtract: "subtract" "{" statement+ "}"
 
     extrude: "extrude" "(" value ")"
+
+    align_x: "align_x" "(" CNAME "," CNAME ")"
+    align_y: "align_y" "(" CNAME "," CNAME ")"
+    align_z: "align_z" "(" CNAME "," CNAME ")"
+
+    center_on_x: "center_on_x" "(" CNAME "," CNAME ")"
+    center_on_y: "center_on_y" "(" CNAME "," CNAME ")"
+    center_on_z: "center_on_z" "(" CNAME "," CNAME ")"
+
+    distance_x: "distance_x" "(" CNAME "," CNAME "," value ")"
+    distance_y: "distance_y" "(" CNAME "," CNAME "," value ")"
+    distance_z: "distance_z" "(" CNAME "," CNAME "," value ")"
+
+    fixed: "fixed" "(" CNAME ")"
 
     value: NUMBER | CNAME
 

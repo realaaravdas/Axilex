@@ -1,0 +1,47 @@
+# CadPilot Constraints Example
+
+# Define some basic shapes and name them
+cube(0, 0, 0, 10) as box1
+cube(20, 0, 0, 5) as box2
+sphere(0, 0, 20, 7) as sphere1
+cylinder(0, 0, 30, 3, 15) as cylinder1
+
+# --- Alignment Constraints ---
+
+# Align box2's min X with box1's min X
+align_x(box2, box1)
+
+# Align sphere1's min Y with box1's min Y
+align_y(sphere1, box1)
+
+# Align cylinder1's min Z with box1's min Z
+align_z(cylinder1, box1)
+
+# --- Centering Constraints ---
+
+# Center box2 on box1 along the Y-axis
+center_on_y(box2, box1)
+
+# Center sphere1 on box1 along the X-axis
+center_on_x(sphere1, box1)
+
+# Center cylinder1 on box1 along the X-axis
+center_on_x(cylinder1, box1)
+
+# --- Distance Constraints ---
+
+# Set distance between box1's max X and box2's min X to 2 units
+distance_x(box1, box2, 2)
+
+# Set distance between sphere1's max Y and cylinder1's min Y to 5 units
+distance_y(sphere1, cylinder1, 5)
+
+# Set distance between box1's max Z and sphere1's min Z to 1 unit
+distance_z(box1, sphere1, 1)
+
+# --- Fixed Constraint (as a marker) ---
+fixed(box1)
+
+# You can observe the effects of these constraints by running:
+# python main.py --renderer gui --file examples/constraints_example.cadp
+# And then inspecting the positions of the objects.
