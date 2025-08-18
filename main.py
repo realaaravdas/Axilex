@@ -37,9 +37,7 @@ if __name__ == "__main__":
         if args.renderer == "gui":
             gui_render(scene.objects)
         elif args.renderer == "terminal":
-            # For terminal rendering, we'll just render the last object for simplicity
-            # as complex scenes are hard to visualize in ASCII.
-            if scene.current_object and hasattr(scene.current_object, 'occt_shape'):
+            if scene.current_object and hasattr(scene.current_object, 'cq_object'):
                 terminal_render(scene.current_object, scene.objects)
             else:
                 print("No renderable object found for terminal display.")

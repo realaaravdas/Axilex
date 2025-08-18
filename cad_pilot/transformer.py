@@ -1,9 +1,7 @@
 from lark import Transformer, Tree, Token
 from .core.geometry import Rectangle, Cube, Sphere, Cylinder, Shape
 from .core.scene import Scene
-from OCC.Core.BRepBndLib import brepbndlib_Add
-from OCC.Core.Bnd import Bnd_Box
-from OCC.Core.gp import gp_Pnt, gp_Vec
+import cadquery as cq
 
 class CadTransformer(Transformer):
     def __init__(self):
@@ -113,7 +111,7 @@ class CadTransformer(Transformer):
     def rotate(self, args):
         angle, ax, ay, az = args[:4]
         statements = args[4:]
-        axis = [ax, ay, az]
+        axis = (ax, ay, az)
 
         nested_objects = []
         for stmt in statements:
@@ -229,14 +227,14 @@ class CadTransformer(Transformer):
         module_vars = dict(zip(module["params"], call_args))
         
         original_object_stack = list(self.object_stack)
-        original_named_objects = dict(self.named_objects) # Save named objects state
+        original_named_objects = dict(self.named_objects) 
         self.object_stack = [] 
-        self.named_objects = {} # Clear named objects for module scope
+        self.named_objects = {} 
 
         for stmt_tree in module["body"]:
             temp_transformer = CadTransformer() 
             temp_transformer.modules = self.modules 
-            temp_transformer.named_objects = self.named_objects # Pass current named objects for module scope
+            temp_transformer.named_objects = self.named_objects 
             
             resolved_stmt_tree = self._resolve_module_vars(stmt_tree, module_vars)
             
@@ -245,7 +243,7 @@ class CadTransformer(Transformer):
                 self._push_object(transformed_obj) 
 
         self.object_stack = original_object_stack + self.object_stack 
-        self.named_objects = original_named_objects # Restore named objects state
+        self.named_objects = original_named_objects 
         
         return self._get_current_object()
 
@@ -270,13 +268,11 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bbox1 = Bnd_Box()
-        brepbndlib_Add(obj1.occt_shape, bbox1)
-        bbox2 = Bnd_Box()
-        brepbndlib_Add(obj2.occt_shape, bbox2)
+        # Get bounding box for CadQuery objects
+        bb1 = obj1.cq_object.BoundingBox()
+        bb2 = obj2.cq_object.BoundingBox()
 
-        # Calculate translation needed to align obj1's min X with obj2's min X
-        dx = bbox2.CornerMin().X() - bbox1.CornerMin().X()
+        dx = bb2.xmin - bb1.xmin
         obj1.translate(dx, 0, 0)
         return None
 
@@ -285,12 +281,10 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bbox1 = Bnd_Box()
-        brepbndlib_Add(obj1.occt_shape, bbox1)
-        bbox2 = Bnd_Box()
-        brepbndlib_Add(obj2.occt_shape, bbox2)
+        bb1 = obj1.cq_object.BoundingBox()
+        bb2 = obj2.cq_object.BoundingBox()
 
-        dy = bbox2.CornerMin().Y() - bbox1.CornerMin().Y()
+        dy = bb2.ymin - bb1.ymin
         obj1.translate(0, dy, 0)
         return None
 
@@ -299,12 +293,10 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bbox1 = Bnd_Box()
-        brepbndlib_Add(obj1.occt_shape, bbox1)
-        bbox2 = Bnd_Box()
-        brepbndlib_Add(obj2.occt_shape, bbox2)
+        bb1 = obj1.cq_object.BoundingBox()
+        bb2 = obj2.cq_object.BoundingBox()
 
-        dz = bbox2.CornerMin().Z() - bbox1.CornerMin().Z()
+        dz = bb2.zmin - bb1.zmin
         obj1.translate(0, 0, dz)
         return None
 
@@ -313,13 +305,11 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bbox1 = Bnd_Box()
-        brepbndlib_Add(obj1.occt_shape, bbox1)
-        bbox2 = Bnd_Box()
-        brepbndlib_Add(obj2.occt_shape, bbox2)
+        bb1 = obj1.cq_object.BoundingBox()
+        bb2 = obj2.cq_object.BoundingBox()
 
-        center1_x = (bbox1.CornerMin().X() + bbox1.CornerMax().X()) / 2
-        center2_x = (bbox2.CornerMin().X() + bbox2.CornerMax().X()) / 2
+        center1_x = (bb1.xmin + bb1.xmax) / 2
+        center2_x = (bb2.xmin + bb2.xmax) / 2
 
         dx = center2_x - center1_x
         obj1.translate(dx, 0, 0)
@@ -330,13 +320,11 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bbox1 = Bnd_Box()
-        brepbndlib_Add(obj1.occt_shape, bbox1)
-        bbox2 = Bnd_Box()
-        brepbndlib_Add(obj2.occt_shape, bbox2)
+        bb1 = obj1.cq_object.BoundingBox()
+        bb2 = obj2.cq_object.BoundingBox()
 
-        center1_y = (bbox1.CornerMin().Y() + bbox1.CornerMax().Y()) / 2
-        center2_y = (bbox2.CornerMin().Y() + bbox2.CornerMax().Y()) / 2
+        center1_y = (bb1.ymin + bb1.ymax) / 2
+        center2_y = (bb2.ymin + bb2.ymax) / 2
 
         dy = center2_y - center1_y
         obj1.translate(0, dy, 0)
@@ -347,13 +335,11 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bbox1 = Bnd_Box()
-        brepbndlib_Add(obj1.occt_shape, bbox1)
-        bbox2 = Bnd_Box()
-        brepbndlib_Add(obj2.occt_shape, bbox2)
+        bb1 = obj1.cq_object.BoundingBox()
+        bb2 = obj2.cq_object.BoundingBox()
 
-        center1_z = (bbox1.CornerMin().Z() + bbox1.CornerMax().Z()) / 2
-        center2_z = (bbox2.CornerMin().Z() + bbox2.CornerMax().Z()) / 2
+        center1_z = (bb1.zmin + bb1.zmax) / 2
+        center2_z = (bb2.zmin + bb2.zmax) / 2
 
         dz = center2_z - center1_z
         obj1.translate(0, 0, dz)
@@ -364,12 +350,10 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bbox1 = Bnd_Box()
-        brepbndlib_Add(obj1.occt_shape, bbox1)
-        bbox2 = Bnd_Box()
-        brepbndlib_Add(obj2.occt_shape, bbox2)
+        bb1 = obj1.cq_object.BoundingBox()
+        bb2 = obj2.cq_object.BoundingBox()
 
-        current_dist_x = bbox2.CornerMin().X() - bbox1.CornerMax().X()
+        current_dist_x = bb2.xmin - bb1.xmax
         dx = dist - current_dist_x
         obj2.translate(dx, 0, 0)
         return None
@@ -379,12 +363,10 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bbox1 = Bnd_Box()
-        brepbndlib_Add(obj1.occt_shape, bbox1)
-        bbox2 = Bnd_Box()
-        brepbndlib_Add(obj2.occt_shape, bbox2)
+        bb1 = obj1.cq_object.BoundingBox()
+        bb2 = obj2.cq_object.BoundingBox()
 
-        current_dist_y = bbox2.CornerMin().Y() - bbox1.CornerMax().Y()
+        current_dist_y = bb2.ymin - bb1.ymax
         dy = dist - current_dist_y
         obj2.translate(0, dy, 0)
         return None
@@ -394,21 +376,15 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bbox1 = Bnd_Box()
-        brepbndlib_Add(obj1.occt_shape, bbox1)
-        bbox2 = Bnd_Box()
-        brepbndlib_Add(obj2.occt_shape, bbox2)
+        bb1 = obj1.cq_object.BoundingBox()
+        bb2 = obj2.cq_object.BoundingBox()
 
-        current_dist_z = bbox2.CornerMin().Z() - bbox1.CornerMax().Z()
+        current_dist_z = bb2.zmin - bb1.zmax
         dz = dist - current_dist_z
         obj2.translate(0, 0, dz)
         return None
 
     def fixed(self, args):
-        # For this simplified constraint system, 'fixed' means the object's position
-        # is determined by its initial definition and any preceding transformations.
-        # It primarily serves as a marker or for future more complex solvers.
-        # In this direct application model, it doesn't perform an action itself.
         obj_name = args[0]
         obj = self._get_named_object(obj_name)
         print(f"Object '{obj_name}' is marked as fixed. Its position will not be altered by subsequent constraints.")

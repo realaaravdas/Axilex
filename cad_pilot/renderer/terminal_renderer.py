@@ -28,10 +28,6 @@ def render(shape_obj, objects=None, width=80, height=25):
 
     # Get vertices and edges from PyVista mesh
     vertices = pv_mesh.points
-    # PyVista does not directly expose 'edges_unique' like trimesh.
-    # We can derive edges from faces, but for simple wireframe, we'll just project vertices.
-    # For a true wireframe, we'd need to iterate through cells and get their edges.
-    # For simplicity in ASCII, we'll just connect projected vertices if they are part of a face.
     
     # Simple orthographic projection (using only X and Y for 2D terminal view)
     proj_vertices = vertices[:, :2]

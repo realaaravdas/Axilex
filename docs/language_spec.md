@@ -24,7 +24,7 @@ Transformations apply to all statements within their curly braces `{}`. They are
 
 - `translate(x, y, z) { ... }`: Moves the enclosed shapes by `(x, y, z)` units.
 - `rotate(angle, ax, ay, az) { ... }`: Rotates the enclosed shapes by `angle` degrees around the axis defined by the vector `(ax, ay, az)`.
-- `scale(x, y, z) { ... }`: Scales the enclosed shapes by factors `x`, `y`, and `z` along their respective axes. **Note:** Current implementation performs uniform scaling based on the first factor (x) due to underlying library limitations for non-uniform scaling.
+- `scale(x, y, z) { ... }`: Scales the enclosed shapes by factors `x`, `y`, and `z` along their respective axes. **Note:** Current implementation performs uniform scaling based on the first factor (x) due to underlying `cadquery` library limitations for non-uniform scaling.
 
 ## Boolean Operations
 

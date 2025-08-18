@@ -2,4 +2,4 @@ pyvista
 lark
 shapely
 mapbox-earcut
-python-occ
+cadquery
