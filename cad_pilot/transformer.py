@@ -275,8 +275,8 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bb1 = obj1.cq_object.BoundingBox()
-        bb2 = obj2.cq_object.BoundingBox()
+        bb1 = obj1.cq_object.val().BoundingBox()
+        bb2 = obj2.cq_object.val().BoundingBox()
 
         dx = bb2.xmin - bb1.xmin
         obj1.translate(dx, 0, 0)
@@ -287,8 +287,8 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bb1 = obj1.cq_object.BoundingBox()
-        bb2 = obj2.cq_object.BoundingBox()
+        bb1 = obj1.cq_object.val().BoundingBox()
+        bb2 = obj2.cq_object.val().BoundingBox()
 
         dy = bb2.ymin - bb1.ymin
         obj1.translate(0, dy, 0)
@@ -299,8 +299,8 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bb1 = obj1.cq_object.BoundingBox()
-        bb2 = obj2.cq_object.BoundingBox()
+        bb1 = obj1.cq_object.val().BoundingBox()
+        bb2 = obj2.cq_object.val().BoundingBox()
 
         dz = bb2.zmin - bb1.zmin
         obj1.translate(0, 0, dz)
@@ -311,8 +311,8 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bb1 = obj1.cq_object.BoundingBox()
-        bb2 = obj2.cq_object.BoundingBox()
+        bb1 = obj1.cq_object.val().BoundingBox()
+        bb2 = obj2.cq_object.val().BoundingBox()
 
         center1_x = (bb1.xmin + bb1.xmax) / 2
         center2_x = (bb2.xmin + bb2.xmax) / 2
@@ -326,8 +326,8 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bb1 = obj1.cq_object.BoundingBox()
-        bb2 = obj2.cq_object.BoundingBox()
+        bb1 = obj1.cq_object.val().BoundingBox()
+        bb2 = obj2.cq_object.val().BoundingBox()
 
         center1_y = (bb1.ymin + bb1.ymax) / 2
         center2_y = (bb2.ymin + bb2.ymax) / 2
@@ -341,8 +341,8 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bb1 = obj1.cq_object.BoundingBox()
-        bb2 = obj2.cq_object.BoundingBox()
+        bb1 = obj1.cq_object.val().BoundingBox()
+        bb2 = obj2.cq_object.val().BoundingBox()
 
         center1_z = (bb1.zmin + bb1.zmax) / 2
         center2_z = (bb2.zmin + bb2.zmax) / 2
@@ -356,8 +356,8 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bb1 = obj1.cq_object.BoundingBox()
-        bb2 = obj2.cq_object.BoundingBox()
+        bb1 = obj1.cq_object.val().BoundingBox()
+        bb2 = obj2.cq_object.val().BoundingBox()
 
         current_dist_x = bb2.xmin - bb1.xmax
         dx = dist - current_dist_x
@@ -369,8 +369,8 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bb1 = obj1.cq_object.BoundingBox()
-        bb2 = obj2.cq_object.BoundingBox()
+        bb1 = obj1.cq_object.val().BoundingBox()
+        bb2 = obj2.cq_object.val().BoundingBox()
 
         current_dist_y = bb2.ymin - bb1.ymax
         dy = dist - current_dist_y
@@ -382,8 +382,8 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        bb1 = obj1.cq_object.BoundingBox()
-        bb2 = obj2.cq_object.BoundingBox()
+        bb1 = obj1.cq_object.val().BoundingBox()
+        bb2 = obj2.cq_object.val().BoundingBox()
 
         current_dist_z = bb2.zmin - bb1.zmax
         dz = dist - current_dist_z
