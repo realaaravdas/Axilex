@@ -49,6 +49,9 @@ class CadTransformer(Transformer):
             name = str(args[1])
             # Update the named_objects dictionary with the created object
             self.named_objects[name] = obj
+        
+        # Crucially, push the object onto the stack here
+        self._push_object(obj, name) # Pass name to _push_object for initial naming
         return obj
 
     def rect(self, args):
@@ -57,7 +60,6 @@ class CadTransformer(Transformer):
         
         x, y, w, h = args
         rectangle = Rectangle(x, y, w, h)
-        # _push_object will handle naming if called from shape rule
         return rectangle
 
     def cube(self, args):
