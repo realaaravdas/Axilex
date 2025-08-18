@@ -41,13 +41,23 @@ class CadTransformer(Transformer):
             return str(item)
         return item
 
+    def shape(self, args):
+        # This rule handles the optional 'as CNAME' part
+        obj = args[0] # The actual shape object (Rectangle, Cube, etc.)
+        name = None
+        if len(args) > 1: # If 'as CNAME' is present
+            name = str(args[1])
+            # Update the named_objects dictionary with the created object
+            self.named_objects[name] = obj
+        return obj
+
     def rect(self, args):
         if any(isinstance(arg, str) for arg in args):
             return ("rect", args)
         
         x, y, w, h = args
         rectangle = Rectangle(x, y, w, h)
-        self._push_object(rectangle)
+        # _push_object will handle naming if called from shape rule
         return rectangle
 
     def cube(self, args):
@@ -56,7 +66,6 @@ class CadTransformer(Transformer):
         
         x, y, z, size = args
         cube = Cube(x, y, z, size)
-        self._push_object(cube)
         return cube
 
     def sphere(self, args):
@@ -65,7 +74,6 @@ class CadTransformer(Transformer):
         
         x, y, z, radius = args
         sphere = Sphere(x, y, z, radius)
-        self._push_object(sphere)
         return sphere
 
     def cylinder(self, args):
@@ -74,7 +82,6 @@ class CadTransformer(Transformer):
         
         x, y, z, radius, height = args
         cylinder = Cylinder(x, y, z, radius, height)
-        self._push_object(cylinder)
         return cylinder
 
     def extrude(self, args):
@@ -268,7 +275,6 @@ class CadTransformer(Transformer):
         obj1 = self._get_named_object(obj1_name)
         obj2 = self._get_named_object(obj2_name)
 
-        # Get bounding box for CadQuery objects
         bb1 = obj1.cq_object.BoundingBox()
         bb2 = obj2.cq_object.BoundingBox()
 

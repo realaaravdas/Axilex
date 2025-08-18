@@ -5,7 +5,7 @@ cad_grammar = r"""
 
     statement: shape | transform | boolean_op | module | use | constraint
 
-    shape: rect | cube | sphere | cylinder
+    shape: (rect | cube | sphere | cylinder) ["as" CNAME]
     transform: translate | rotate | scale
     boolean_op: union | subtract
     constraint: align_x | align_y | align_z | center_on_x | center_on_y | center_on_z | distance_x | distance_y | distance_z | fixed
