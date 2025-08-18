@@ -1,0 +1,8 @@
+# Define a custom box module
+module my_box(width, height, depth) {
+  rect(0, 0, width, height)
+  extrude(depth)
+}
+
+# Use the module to create a box
+use my_box(10, 20, 5)

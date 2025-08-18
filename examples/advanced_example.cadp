@@ -1,0 +1,49 @@
+# Advanced CadPilot Example
+
+# Define a custom module for a simple table leg
+module table_leg(width, depth, height) {
+    cube(0, 0, 0, width)
+    translate(0, 0, width) {
+        cube(0, 0, 0, depth)
+    }
+    translate(0, 0, width + depth) {
+        cube(0, 0, 0, height - width - depth)
+    }
+}
+
+# Define a custom module for a table top
+module table_top(length, width, thickness) {
+    cube(0, 0, 0, length)
+    scale(1, width/length, thickness/length) {
+        cube(0, 0, 0, length)
+    }
+}
+
+# Create a table using modules
+use table_leg(5, 5, 50) # Front-left leg
+translate(95, 0, 0) {
+    use table_leg(5, 5, 50) # Front-right leg
+}
+translate(0, 95, 0) {
+    use table_leg(5, 5, 50) # Back-left leg
+}
+translate(95, 95, 0) {
+    use table_leg(5, 5, 50) # Back-right leg
+}
+
+translate(0, 0, 50) {
+    use table_top(100, 100, 5) # Table top
+}
+
+# Example of boolean operation: creating a hole in a cube
+union {
+    cube(10, 10, 60, 20)
+    subtract {
+        cube(10, 10, 60, 20)
+        cylinder(15, 15, 60, 5, 20) # Hole in the center
+    }
+}
+
+# Example of a sphere and cylinder
+sphere(50, 50, 25, 20)
+cylinder(70, 50, 25, 10, 30)

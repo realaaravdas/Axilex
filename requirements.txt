@@ -1,0 +1,5 @@
+pyvista
+trimesh
+lark
+shapely
+mapbox-earcut
