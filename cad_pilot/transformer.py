@@ -34,11 +34,30 @@ class CadTransformer(Transformer):
         return obj
 
     def value(self, args):
+        if len(args) == 1:
+            return args[0]
+        left, op, right = args
+        if op == '+':
+            return left + right
+        if op == '-':
+            return left - right
+
+    def term(self, args):
+        if len(args) == 1:
+            return args[0]
+        left, op, right = args
+        if op == '*':
+            return left * right
+        if op == '/':
+            return left / right
+
+    def factor(self, args):
         item = args[0]
-        if item.type == 'NUMBER':
-            return float(item)
-        elif item.type == 'CNAME':
-            return str(item)
+        if isinstance(item, Token):
+            if item.type == 'NUMBER':
+                return float(item)
+            elif item.type == 'CNAME':
+                return str(item)
         return item
 
     def shape(self, args):

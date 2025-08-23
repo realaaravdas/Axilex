@@ -3,7 +3,7 @@ from lark import Lark
 cad_grammar = r"""
     ?start: statement+
 
-    statement: shape | transform | boolean_op | module | use | constraint
+    statement: shape | transform | boolean_op | module | use | constraint | extrude
 
     shape: (rect | cube | sphere | cylinder) ["as" CNAME]
     transform: translate | rotate | scale
@@ -41,7 +41,9 @@ cad_grammar = r"""
 
     fixed: "fixed" "(" CNAME ")"
 
-    value: NUMBER | CNAME
+    value: term (("+" | "-") term)*
+    term: factor (("*" | "/") factor)*
+    factor: NUMBER | CNAME | "(" value ")"
 
     COMMENT: /#.*/
 
