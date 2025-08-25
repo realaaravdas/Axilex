@@ -2,13 +2,15 @@ import customtkinter as ctk
 
 class HoldButton(ctk.CTkFrame):
     def __init__(self, master, text="Quit", command=None, hold_time=1000, **kwargs):
-        super().__init__(master, **kwargs)
+        frame_kwargs = {k: v for k, v in kwargs.items() if k not in ["text_color", "hover_color", "border_color", "border_width", "fg_color"]}
+        super().__init__(master, **frame_kwargs)
 
         self.command = command
         self.hold_time = hold_time
         self._hold_job = None
 
-        self.button = ctk.CTkButton(self, text=text, **kwargs)
+        button_kwargs = {k: v for k, v in kwargs.items() if k in ["text_color", "hover_color", "border_color", "border_width", "fg_color"]}
+        self.button = ctk.CTkButton(self, text=text, **button_kwargs)
         self.button.grid(row=0, column=0, sticky="nsew")
 
         self.progress = ctk.CTkProgressBar(self, orientation="horizontal", mode="determinate")
