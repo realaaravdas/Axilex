@@ -118,10 +118,7 @@ class CadTransformer(Transformer):
             return extruded_obj
         return None
 
-    def translate(self, args):
-        x, y, z = args[:3]
-        statements = args[3:]
-
+    def _apply_transformation(self, transformation, args, statements):
         nested_objects = []
         for stmt in statements:
             temp_stack = list(self.object_stack)
@@ -132,46 +129,24 @@ class CadTransformer(Transformer):
         
         for obj in nested_objects:
             if isinstance(obj, Shape):
-                obj.translate(x, y, z)
+                transformation(obj, *args)
                 self._push_object(obj) 
         return None
+
+    def translate(self, args):
+        x, y, z = args[:3]
+        statements = args[3:]
+        return self._apply_transformation(lambda obj, x, y, z: obj.translate(x, y, z), (x, y, z), statements)
 
     def rotate(self, args):
         angle, ax, ay, az = args[:4]
         statements = args[4:]
-        axis = (ax, ay, az)
-
-        nested_objects = []
-        for stmt in statements:
-            temp_stack = list(self.object_stack)
-            self.object_stack = []
-            self.transform(stmt)
-            nested_objects.extend(self.object_stack)
-            self.object_stack = temp_stack
-
-        for obj in nested_objects:
-            if isinstance(obj, Shape):
-                obj.rotate(angle, axis[0], axis[1], axis[2]) 
-                self._push_object(obj)
-        return None
+        return self._apply_transformation(lambda obj, angle, ax, ay, az: obj.rotate(angle, ax, ay, az), (angle, ax, ay, az), statements)
 
     def scale(self, args):
         x, y, z = args[:3]
         statements = args[3:]
-
-        nested_objects = []
-        for stmt in statements:
-            temp_stack = list(self.object_stack)
-            self.object_stack = []
-            self.transform(stmt)
-            nested_objects.extend(self.object_stack)
-            self.object_stack = temp_stack
-
-        for obj in nested_objects:
-            if isinstance(obj, Shape):
-                obj.scale(x, y, z)
-                self._push_object(obj)
-        return None
+        return self._apply_transformation(lambda obj, x, y, z: obj.scale(x, y, z), (x, y, z), statements)
 
     def union(self, args):
         shapes_to_union = []
@@ -259,18 +234,18 @@ class CadTransformer(Transformer):
         self.object_stack = [] 
         self.named_objects = {} 
 
+        temp_transformer = CadTransformer() 
+        temp_transformer.modules = self.modules 
+        temp_transformer.named_objects = self.named_objects 
+
         for stmt_tree in module["body"]:
-            temp_transformer = CadTransformer() 
-            temp_transformer.modules = self.modules 
-            temp_transformer.named_objects = self.named_objects 
-            
             resolved_stmt_tree = self._resolve_module_vars(stmt_tree, module_vars)
             
             transformed_obj = temp_transformer.transform(resolved_stmt_tree)
             if transformed_obj and isinstance(transformed_obj, Shape):
                 self._push_object(transformed_obj) 
 
-        self.object_stack = original_object_stack + self.object_stack 
+        self.object_stack = original_object_stack + temp_transformer.object_stack 
         self.named_objects = original_named_objects 
         
         return self._get_current_object()
