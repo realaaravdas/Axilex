@@ -7,5 +7,5 @@ A Python-based CAD language and compiler.
 To start the application, run the following command:
 
 ```bash
-python -m cad_pilot.renderer.launcher
+python -m cad_pilot.renderer.ui.launcher
 ```

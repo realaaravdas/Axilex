@@ -1,5 +1,5 @@
 import pyvista as pv
-from .colors import colors
+from .ui.colors import colors
 
 class GuiRenderer:
     def __init__(self, objects):
