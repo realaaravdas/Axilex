@@ -28,7 +28,7 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("CAD Pilot")
+        self.title("KRYSTALcad")
         self.geometry("800x600")
         self.configure(fg_color=colors["primary_bg"])
 
@@ -39,7 +39,7 @@ class App(ctk.CTk):
         self.grid_rowconfigure(1, weight=1)
 
         # Title
-        title = ctk.CTkLabel(self, text="C A D _ P I L O T", font=("Orbitron", 48, "bold"), text_color=colors["bright_cyan"])
+        title = ctk.CTkLabel(self, text="KRYSTAL CAD", font=("Orbitron", 48, "bold"), text_color=colors["bright_cyan"])
         title.grid(row=0, column=0, pady=20, sticky="n")
 
         # Frame for file list and buttons
@@ -49,26 +49,26 @@ class App(ctk.CTk):
         main_frame.grid_rowconfigure(0, weight=1)
 
         # File list
-        self.file_list = ctk.CTkTextbox(main_frame, fg_color=colors["secondary_bg"], text_color=colors["primary_text"], font=("Share Tech Mono", 14), border_color=colors["subtle_border"], border_width=1)
+        self.file_list = ctk.CTkTextbox(main_frame, fg_color=colors["secondary_bg"], text_color=colors["primary_text"], font=("JetBrains Mono", 14), border_color=colors["subtle_border"], border_width=1)
         self.file_list.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         # Buttons
         button_frame = ctk.CTkFrame(self, fg_color=colors["primary_bg"])
         button_frame.grid(row=2, column=0, pady=20, sticky="s")
 
-        add_button = ctk.CTkButton(button_frame, text="Add File", command=self.add_file, font=("Share Tech Mono", 18), fg_color=colors["electric_blue"], text_color=colors["primary_text"], border_color=colors["active_border"], border_width=1, hover_color=colors["neon_blue"])
+        add_button = ctk.CTkButton(button_frame, text="Add File", command=self.add_file, font=("Inter", 18, "bold"), fg_color=colors["electric_blue"], text_color=colors["primary_text"], border_color=colors["active_border"], border_width=1, hover_color=colors["neon_blue"])
         add_button.grid(row=0, column=0, padx=10)
 
-        render_gui_button = ctk.CTkButton(button_frame, text="Render with GUI", command=self.render_gui, font=("Share Tech Mono", 18), fg_color=colors["electric_blue"], text_color=colors["primary_text"], border_color=colors["active_border"], border_width=1, hover_color=colors["neon_blue"])
+        render_gui_button = ctk.CTkButton(button_frame, text="Render with GUI", command=self.render_gui, font=("Inter", 18, "bold"), fg_color=colors["electric_blue"], text_color=colors["primary_text"], border_color=colors["active_border"], border_width=1, hover_color=colors["neon_blue"])
         render_gui_button.grid(row=0, column=1, padx=10)
 
-        render_terminal_button = ctk.CTkButton(button_frame, text="Render with Terminal", command=self.render_terminal, font=("Share Tech Mono", 18), fg_color=colors["electric_blue"], text_color=colors["primary_text"], border_color=colors["active_border"], border_width=1, hover_color=colors["neon_blue"])
+        render_terminal_button = ctk.CTkButton(button_frame, text="Render with Terminal", command=self.render_terminal, font=("Inter", 18, "bold"), fg_color=colors["electric_blue"], text_color=colors["primary_text"], border_color=colors["active_border"], border_width=1, hover_color=colors["neon_blue"])
         render_terminal_button.grid(row=0, column=2, padx=10)
 
     def add_file(self):
         filepath = filedialog.askopenfilename(
-            title="Select a CAD Pilot File",
-            filetypes=(("CAD Pilot Files", "*.cadp"), ("All files", "*.*"))
+            title="Select a KRYSTALcad File",
+            filetypes=(("KRYSTALcad Files", "*.cadp"), ("All files", "*.*"))
         )
         if filepath:
             self.file_list.insert("end", filepath + "\n")
@@ -86,3 +86,4 @@ class App(ctk.CTk):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
+
