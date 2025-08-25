@@ -2,27 +2,8 @@ import customtkinter as ctk
 from tkinter import filedialog
 import subprocess
 import sys
-
-# Color Palette
-colors = {
-    "deep_space": "#000308",
-    "void_black": "#050a0f",
-    "dark_matter": "#0a1018",
-    "shadow_blue": "#0f1419",
-    "stellar_edge": "#141920",
-    "ice_white": "#f8fafc",
-    "frost_blue": "#e2e8f0",
-    "nebula_gray": "#cbd5e1",
-    "cosmic_dust": "#94a3b8",
-    "plasma_blue": "#00e5ff",
-    "quantum_cyan": "#64ffda",
-    "neural_blue": "#2196f3",
-    "photon_blue": "#03dac6",
-    "system_green": "#00ff88",
-    "alert_amber": "#ffab00",
-    "critical_red": "#ff1744",
-    "data_blue": "#00b0ff",
-}
+from .hold_button import HoldButton
+from .colors import colors
 
 class App(ctk.CTk):
     def __init__(self):
@@ -62,8 +43,11 @@ class App(ctk.CTk):
         render_gui_button = ctk.CTkButton(button_frame, text="Render with GUI", command=self.render_gui, font=("Inter", 16, "bold"), fg_color="#0f1419", text_color="#00e5ff", border_color="#00e5ff", border_width=1, hover_color="#141920")
         render_gui_button.grid(row=0, column=1, padx=10)
 
-        render_terminal_button = ctk.CTkButton(button_frame, text="Render with Terminal", command=self.render_terminal, font=("Inter", 16, "bold"), fg_color="#0f1419", text_color="#00e5ff", border_color="#00e5ff", border_width=1, hover_color="#141920")
-        render_terminal_button.grid(row=0, column=2, padx=10)
+        render_lightweight_button = ctk.CTkButton(button_frame, text="Lightweight Render", command=self.render_lightweight, font=("Inter", 16, "bold"), fg_color="#0f1419", text_color="#00e5ff", border_color="#00e5ff", border_width=1, hover_color="#141920")
+        render_lightweight_button.grid(row=0, column=2, padx=10)
+
+        quit_button = HoldButton(button_frame, text="Quit", command=self.quit, hold_time=1000, fg_color="#0f1419", text_color="#ff1744", border_color="#ff1744", border_width=1, hover_color="#141920")
+        quit_button.grid(row=0, column=3, padx=10)
 
     def add_file(self):
         filepath = filedialog.askopenfilename(
@@ -76,12 +60,16 @@ class App(ctk.CTk):
     def render_gui(self):
         selected_file = self.file_list.get("1.0", "end-1c").strip().split("\n")[-1]
         if selected_file:
-            subprocess.Popen([sys.executable, "-m", "cad_pilot.renderer.render_process", "--file", selected_file, "--renderer", "gui"])
+            self.withdraw()
+            subprocess.run([sys.executable, "-m", "cad_pilot.renderer.render_process", "--file", selected_file, "--renderer", "gui"])
+            self.deiconify()
 
-    def render_terminal(self):
-        selected_.file = self.file_list.get("1.0", "end-1c").strip().split("\n")[-1]
+    def render_lightweight(self):
+        selected_file = self.file_list.get("1.0", "end-1c").strip().split("\n")[-1]
         if selected_file:
-            subprocess.Popen([sys.executable, "-m", "cad_pilot.renderer.render_process", "--file", selected_file, "--renderer", "terminal"])
+            self.withdraw()
+            subprocess.run([sys.executable, "-m", "cad_pilot.renderer.render_process", "--file", selected_file, "--renderer", "lightweight"])
+            self.deiconify()
 
 if __name__ == "__main__":
     app = App()
