@@ -33,3 +33,15 @@ def export_to_step(objects, output_path="output.step"):
     combined_cq_object = _combine_shapes(objects)
     cq.exporters.export(combined_cq_object, output_path, "STEP")
     print(f"Exported model to {output_path} (STEP)")
+
+def export_to_dxf(objects, output_path="output.dxf"):
+    """
+    Exports a list of Shape objects to a single DXF file using CadQuery's exporter.
+    """
+    if not objects:
+        print("No objects to export to DXF.")
+        return
+
+    combined_cq_object = _combine_shapes(objects)
+    cq.exporters.export(combined_cq_object, output_path, "DXF")
+    print(f"Exported model to {output_path} (DXF)")
