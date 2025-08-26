@@ -58,16 +58,16 @@ class Shape:
         self.cq_object = self.cq_object.mirror(mirror_plane)
         return self
 
-class Rectangle(Shape):
+class Rectangle:
     def __init__(self, x, y, width, height):
-        # Create a 2D workplane and then extrude to get a Solid
-        workplane = cq.Workplane("XY").center(x + width/2, y + height/2)
-        rect_2d = workplane.rect(width, height)
-        super().__init__(rect_2d.val())
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.cq_workplane = cq.Workplane("XY").center(x + width/2, y + height/2).rect(width, height)
 
     def extrude(self, height):
-        # Extrude the existing 2D rectangle to get a Solid
-        extruded_solid = self.cq_object.extrude(height).val()
+        extruded_solid = self.cq_workplane.extrude(height).val()
         return Shape(extruded_solid)
 
 class Cube(Shape):

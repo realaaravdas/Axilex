@@ -70,9 +70,35 @@ class CadTransformer(Transformer):
             # Update the named_objects dictionary with the created object
             self.named_objects[name] = obj
         
-        # Crucially, push the object onto the stack here
-        self._push_object(obj, name) # Pass name to _push_object for initial naming
+        # Crucially, push the object onto the stack here ONLY IF IT'S A 3D SHAPE
+        if isinstance(obj, Shape):
+            self._push_object(obj, name) # Pass name to _push_object for initial naming
         return obj
+
+    def rect(self, args):
+        if any(isinstance(arg, str) for arg in args):
+            return ("rect", args)
+        
+        x, y, w, h = args
+        rectangle = Rectangle(x, y, w, h)
+        return rectangle
+
+    def extrude(self, args):
+        if any(isinstance(arg, str) for arg in args):
+            return ("extrude", args)
+
+        height, = args
+        current_obj = self._get_current_object()
+        if isinstance(current_obj, Rectangle):
+            extruded_obj = current_obj.extrude(height)
+            self._pop_object() # Pop the Rectangle
+            self._push_object(extruded_obj) # Push the new extruded object
+            return extruded_obj
+        elif isinstance(current_obj, Shape):
+            # If it's already a 3D shape, extrude it further (though this might not be desired behavior)
+            # For now, we'll just return the current object if it's not a Rectangle
+            return current_obj
+        return None
 
     def rect(self, args):
         if any(isinstance(arg, str) for arg in args):
