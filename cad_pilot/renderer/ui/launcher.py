@@ -13,7 +13,7 @@ class App(ctk.CTk):
         super().__init__()
 
         self.title("KRYSTALcad")
-        self.geometry("800x600")
+        self.geometry("1200x600")
         self.configure(fg_color=colors["deep_space"])
 
         self.create_widgets()
