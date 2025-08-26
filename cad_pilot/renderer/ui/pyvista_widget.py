@@ -74,8 +74,11 @@ class PyVistaWidget(ctk.CTkFrame):
         self.image_label.image = ctk_img # Keep a reference!
 
     def add_mesh(self, mesh, **kwargs):
-        self.plotter.add_mesh(mesh, **kwargs)
-        self._update_display()
+        if mesh and mesh.n_points > 0:
+            self.plotter.add_mesh(mesh, **kwargs)
+            self._update_display()
+        else:
+            print("Warning: Attempted to add an empty or invalid mesh to the plotter.")
 
     def clear_actors(self):
         self.plotter.clear_actors()
