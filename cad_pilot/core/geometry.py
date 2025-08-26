@@ -11,15 +11,15 @@ class Shape:
         if not self.cq_object:
             return None
 
-        # Generate a trimesh object directly from the CadQuery object
-        t_mesh = self.cq_object.to_mesh()
+        # Generate a CadQuery Mesh object
+        cq_mesh = self.cq_object.to_mesh()
 
-        # Convert trimesh to pyvista.PolyData
+        # Convert CadQuery Mesh to pyvista.PolyData
         # PyVista expects faces to be structured as [n_points, p1, p2, p3, ...]
-        faces = t_mesh.faces.flatten()
-        faces = np.insert(faces, np.arange(0, len(faces), 3), 3) # Add 3 for triangle faces
+        faces = np.array(cq_mesh.faces)
+        faces_with_size = np.insert(faces, np.arange(0, len(faces), 3), 3) # Add 3 for triangle faces
 
-        mesh = pv.PolyData(t_mesh.vertices, faces)
+        mesh = pv.PolyData(cq_mesh.vertices, faces_with_size)
         return mesh
 
     def translate(self, x, y, z):
