@@ -21,11 +21,13 @@ class LightweightRenderer:
     def render_objects(self):
         self.plotter.clear_actors()
         for obj in self.objects:
-            if hasattr(obj, 'cq_object') and obj.cq_object:
-                if self.is_wireframe:
-                    self.plotter.add_mesh(obj.cq_object, style='wireframe', color=colors["plasma_blue"], line_width=2)
-                else:
-                    self.plotter.add_mesh(obj.cq_object, style='surface', color=colors["photon_blue"], smooth_shading=True)
+            if hasattr(obj, 'to_pyvista_mesh'):
+                mesh = obj.to_pyvista_mesh()
+                if mesh:
+                    if self.is_wireframe:
+                        self.plotter.add_mesh(mesh, style='wireframe', color=colors["plasma_blue"], line_width=2)
+                    else:
+                        self.plotter.add_mesh(mesh, style='surface', color=colors["photon_blue"], smooth_shading=True)
 
     def toggle_mode(self, value):
         self.is_wireframe = value
