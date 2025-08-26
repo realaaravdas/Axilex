@@ -74,3 +74,9 @@ class Cylinder(Shape):
     def __init__(self, x, y, z, radius, height):
         cq_cylinder = cq.Workplane("XY").cylinder(height, radius).translate((x, y, z + height/2)).val()
         super().__init__(cq_cylinder)
+
+class Cone(Shape):
+    def __init__(self, x, y, z, radius1, radius2, height):
+        cq_cone = cq.Workplane("XY").cone(height, radius1, radius2)
+        cq_cone_solid = cq_cone.val().translate((x, y, z + height/2))
+        super().__init__(cq_cone_solid)

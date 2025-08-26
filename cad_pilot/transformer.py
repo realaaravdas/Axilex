@@ -1,5 +1,5 @@
 from lark import Transformer, Tree, Token
-from .core.geometry import Rectangle, Cube, Sphere, Cylinder, Shape
+from .core.geometry import Rectangle, Cube, Sphere, Cylinder, Cone, Shape
 from .core.scene import Scene
 import cadquery as cq
 
@@ -104,6 +104,14 @@ class CadTransformer(Transformer):
         x, y, z, radius, height = args
         cylinder = Cylinder(x, y, z, radius, height)
         return cylinder
+
+    def cone(self, args):
+        if any(isinstance(arg, str) for arg in args):
+            return ("cone", args)
+        
+        x, y, z, radius1, radius2, height = args
+        cone = Cone(x, y, z, radius1, radius2, height)
+        return cone
 
     def extrude(self, args):
         if any(isinstance(arg, str) for arg in args):
