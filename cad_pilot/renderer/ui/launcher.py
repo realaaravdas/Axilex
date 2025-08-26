@@ -61,19 +61,22 @@ class App(ctk.CTk):
         selected_file = self.file_list.get("1.0", "end-1c").strip().split("\n")[-1]
         if selected_file:
             self.withdraw()
-            self.update_idletasks()
-            self.update()
-            subprocess.run([sys.executable, "-m", "cad_pilot.renderer.render_process", "--file", selected_file, "--renderer", "gui"])
-            self.deiconify()
+            self.render_process = subprocess.Popen([sys.executable, "-m", "cad_pilot.renderer.render_process", "--file", selected_file, "--renderer", "gui"])
+            self.after(100, self.check_render_process)
 
     def render_lightweight(self):
         selected_file = self.file_list.get("1.0", "end-1c").strip().split("\n")[-1]
         if selected_file:
             self.withdraw()
-            self.update_idletasks()
-            self.update()
-            subprocess.run([sys.executable, "-m", "cad_pilot.renderer.render_process", "--file", selected_file, "--renderer", "lightweight"])
+            self.render_process = subprocess.Popen([sys.executable, "-m", "cad_pilot.renderer.render_process", "--file", selected_file, "--renderer", "lightweight"])
+            self.after(100, self.check_render_process)
+
+    def check_render_process(self):
+        if self.render_process and self.render_process.poll() is not None:
             self.deiconify()
+            self.render_process = None
+        else:
+            self.after(100, self.check_render_process)
 
 if __name__ == "__main__":
     app = App()
