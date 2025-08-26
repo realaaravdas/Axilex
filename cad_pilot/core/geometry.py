@@ -1,6 +1,8 @@
 import cadquery as cq
 import pyvista as pv
 import numpy as np
+import tempfile
+import os
 
 class Shape:
     def __init__(self, cq_solid):
@@ -11,16 +13,19 @@ class Shape:
         if not self.cq_object:
             return None
 
-        # Generate a CadQuery Mesh object
-        cq_mesh = self.cq_object.to_mesh()
+        # Create a temporary file for VTK export
+        with tempfile.NamedTemporaryFile(suffix='.vtp', delete=False) as temp_file:
+            temp_path = temp_file.name
 
-        # Convert CadQuery Mesh to pyvista.PolyData
-        # PyVista expects faces to be structured as [n_points, p1, p2, p3, ...]
-        faces = np.array(cq_mesh.faces)
-        faces_with_size = np.insert(faces, np.arange(0, len(faces), 3), 3) # Add 3 for triangle faces
-
-        mesh = pv.PolyData(cq_mesh.vertices, faces_with_size)
-        return mesh
+        try:
+            # Export to VTP file and load with PyVista
+            cq.exporters.export(self.cq_object, temp_path, "VTP")
+            mesh = pv.read(temp_path)
+            return mesh
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
 
     def translate(self, x, y, z):
         self.cq_object = self.cq_object.translate((x, y, z))
