@@ -14,6 +14,7 @@ class CadTransformer(Transformer):
     def _push_object(self, obj, name=None):
         self.object_stack.append(obj)
         self.scene.set_current_object(obj)
+        self.scene.add_object(obj)
         if name:
             self.named_objects[name] = obj
 
