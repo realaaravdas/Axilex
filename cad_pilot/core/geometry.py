@@ -64,10 +64,12 @@ class Rectangle:
         self.y = y
         self.width = width
         self.height = height
-        self.cq_workplane = cq.Workplane("XY").center(x + width/2, y + height/2).rect(width, height)
 
     def extrude(self, height):
-        extruded_solid = self.cq_workplane.extrude(height).val()
+        # Create a 2D workplane and then extrude to get a Solid
+        workplane = cq.Workplane("XY").center(self.x + self.width/2, self.y + self.height/2)
+        rect_2d = workplane.rect(self.width, self.height)
+        extruded_solid = rect_2d.extrude(height).val() # Get the Solid object
         return Shape(extruded_solid)
 
 class Cube(Shape):

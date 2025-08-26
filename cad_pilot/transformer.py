@@ -99,14 +99,6 @@ class CadTransformer(Transformer):
             return current_obj
         return None
 
-    def rect(self, args):
-        if any(isinstance(arg, str) for arg in args):
-            return ("rect", args)
-        
-        x, y, w, h = args
-        rectangle = Rectangle(x, y, w, h)
-        return rectangle
-
     def cube(self, args):
         if any(isinstance(arg, str) for arg in args):
             return ("cube", args)
