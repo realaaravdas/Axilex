@@ -48,6 +48,11 @@ class Shape:
         cut_cq_object = self.cq_object.cut(other_shape.cq_object)
         return Shape(cut_cq_object)
 
+    def mirror(self, nx, ny, nz):
+        mirror_plane = cq.Plane(origin=(0, 0, 0), normal=(nx, ny, nz))
+        self.cq_object = self.cq_object.mirror(mirror_plane)
+        return self
+
 class Rectangle(Shape):
     def __init__(self, x, y, width, height):
         # Create a 2D workplane and then extrude to get a Solid

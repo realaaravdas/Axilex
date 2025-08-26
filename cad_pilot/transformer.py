@@ -156,6 +156,11 @@ class CadTransformer(Transformer):
         statements = args[3:]
         return self._apply_transformation(lambda obj, x, y, z: obj.scale(x, y, z), (x, y, z), statements)
 
+    def mirror(self, args):
+        nx, ny, nz = args[:3]
+        statements = args[3:]
+        return self._apply_transformation(lambda obj, nx, ny, nz: obj.mirror(nx, ny, nz), (nx, ny, nz), statements)
+
     def union(self, args):
         shapes_to_union = []
         for stmt in args:

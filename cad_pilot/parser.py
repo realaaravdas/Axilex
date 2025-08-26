@@ -8,7 +8,9 @@ cad_grammar = r"""
     shape: (rect | cube | sphere | cylinder | cone) ["as" CNAME]
 
     cone: "cone" "(" value "," value "," value "," value "," value "," value ")"
-    transform: translate | rotate | scale
+    transform: translate | rotate | scale | mirror
+
+    mirror: "mirror" "(" value "," value "," value ")" "{" statement+ "}"
     boolean_op: union | subtract
     constraint: align_x | align_y | align_z | center_on_x | center_on_y | center_on_z | distance_x | distance_y | distance_z | fixed
 
