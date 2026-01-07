@@ -1,0 +1,243 @@
+# Error Handling and Validation Examples
+# This file demonstrates error detection in the KRYSTALcad language
+
+# ============================================================================
+# CONSTRAINT CONFLICTS
+# ============================================================================
+
+# Example 1: Collision Detection
+# Objects that overlap will trigger an error with no_collision constraint
+
+cube(0, 0, 0, 20) as box_a
+cube(10, 10, 10, 20) as box_b
+
+# This should detect that box_a and box_b overlap
+# ERROR: Collision detected between 'box_a' and 'box_b'
+# no_collision(box_a, box_b)
+
+# ============================================================================
+# CONTAINMENT VALIDATION
+# ============================================================================
+
+# Example 2: Containment Check
+# Object must be fully inside container
+
+cube(0, 0, 0, 50) as container
+cube(60, 60, 60, 10) as part_outside
+
+# This should fail - part is outside container
+# ERROR: Containment constraint failed: 'part_outside' is not fully contained within 'container'
+# contained_in(part_outside, container)
+
+# Valid containment example
+cube(100, 100, 100, 50) as big_box
+cube(110, 110, 110, 20) as small_part
+
+# This should work - small_part is inside big_box
+contained_in(small_part, big_box)
+
+# ============================================================================
+# FIT TOLERANCE VALIDATION
+# ============================================================================
+
+# Example 3: Clearance Fit Validation
+# For clearance fit, shaft must be smaller than hole
+
+cylinder(0, 50, 0, 12, 30) as shaft_big
+cylinder(20, 50, 0, 10, 30) as hole_small
+
+# This should fail - shaft is bigger than hole
+# ERROR: Clearance fit impossible: 'shaft_big' cannot fit with clearance in 'hole_small'
+# fit(shaft_big, hole_small, "clearance")
+
+# Valid clearance fit
+cylinder(50, 50, 0, 9.8, 30) as proper_shaft
+cylinder(70, 50, 0, 10.2, 30) as proper_hole
+
+# This should work - shaft is smaller than hole
+fit(proper_shaft, proper_hole, "clearance")
+
+# ============================================================================
+# GEOMETRIC VALIDATION
+# ============================================================================
+
+# Example 4: Invalid Dimensions
+# Negative dimensions should trigger errors
+
+# ERROR: Negative dimensions not allowed
+# cube(0, 0, 0, -10)
+
+# ERROR: Zero radius not allowed
+# sphere(0, 0, 0, 0)
+
+# ============================================================================
+# GEAR VALIDATION
+# ============================================================================
+
+# Example 5: Invalid Gear Parameters
+# Too few teeth for the module size
+
+# ERROR: Gear must have at least 6 teeth
+# gear(0, 0, 0, 2, 4, 20, 10)
+
+# Valid gear
+gear(100, 100, 0, 2, 20, 20, 10) as valid_gear
+
+# ============================================================================
+# BEARING VALIDATION
+# ============================================================================
+
+# Example 6: Invalid Bearing Dimensions
+# Inner diameter must be less than outer diameter
+
+# ERROR: Inner diameter must be less than outer diameter
+# bearing(0, 0, 0, 25, 20, 8)
+
+# Valid bearing
+bearing(150, 100, 0, 10, 22, 7) as valid_bearing
+
+# ============================================================================
+# THREAD VALIDATION
+# ============================================================================
+
+# Example 7: Invalid Thread Type
+
+cylinder(0, 150, 0, 5, 30) as threaded_shaft
+
+# ERROR: Invalid thread type
+# thread(10, 1.5, 25, "invalid_type")
+
+# Valid thread types: "metric", "imperial", "acme", "buttress"
+thread(10, 1.5, 25, "metric")
+
+# ============================================================================
+# TOLERANCE VALIDATION
+# ============================================================================
+
+# Example 8: Invalid Tolerance Values
+
+cube(0, 200, 0, 15) as tolerance_part
+
+# ERROR: Tolerances must be non-negative
+# tolerance(tolerance_part, -0.1, 0.05)
+
+# Valid tolerance
+tolerance(tolerance_part, 0.1, 0.05)
+
+# Example 9: Invalid Geometric Tolerance Type
+
+cylinder(50, 200, 0, 8, 25) as cyl_part
+
+# ERROR: Invalid tolerance type
+# geometric_tolerance(cyl_part, "invalid_type", 0.01)
+
+# Valid geometric tolerance types:
+# "flatness", "straightness", "circularity", "cylindricity",
+# "perpendicularity", "parallelism", "angularity",
+# "position", "concentricity", "symmetry", "runout"
+geometric_tolerance(cyl_part, "cylindricity", 0.01)
+
+# ============================================================================
+# BEAM VALIDATION
+# ============================================================================
+
+# Example 10: Invalid Beam Type
+
+# ERROR: Invalid beam type
+# beam(0, 0, 0, 100, 15, "invalid")
+
+# Valid beam types: "i", "t", "l", "c", "box"
+beam(100, 200, 0, 100, 15, "i") as i_beam
+
+# ============================================================================
+# COMPLEX VALIDATION SCENARIOS
+# ============================================================================
+
+# Example 11: Multiple Constraint Conflicts
+# This demonstrates how multiple constraints might conflict
+
+cube(0, 250, 0, 20) as base
+cube(25, 250, 0, 15) as mover
+
+# Fix the base
+fixed(base)
+
+# Set a distance constraint
+distance_x(base, mover, 10)
+
+# Try to ensure no collision (should work with distance constraint)
+no_collision(base, mover)
+
+# Example 12: Tolerance Stack-up Warning
+# When tolerances might cause interference
+
+cube(0, 300, 0, 20) as part_a
+cube(20.5, 300, 0, 20) as part_b
+
+# Set tolerances
+tolerance(part_a, 0.3, 0.3)
+tolerance(part_b, 0.3, 0.3)
+
+# WARNING: With worst-case tolerance, parts might collide
+# Max size of part_a: 20 + 0.3 = 20.3
+# Min position of part_b: 20.5 - 0.3 = 20.2
+# Gap: 20.2 - 20.3 = -0.1 (interference!)
+no_collision(part_a, part_b)
+
+# ============================================================================
+# ASSEMBLY VALIDATION
+# ============================================================================
+
+# Example 13: Bolt Assembly with Validation
+
+module validated_bolt(diameter, length, hole_diameter) {
+    # Bolt shaft
+    cylinder(0, 0, 0, diameter/2, length) as bolt_shaft
+    
+    # Bolt head
+    translate(0, 0, 0) {
+        cylinder(0, 0, 0, diameter*0.8, diameter*0.6) as bolt_head
+    }
+    
+    # Thread
+    thread(diameter, diameter*0.15, length*0.8, "metric")
+    
+    # Hole for bolt
+    translate(diameter*2, 0, 0) {
+        cylinder(0, 0, 0, hole_diameter/2, length) as bolt_hole
+    }
+    
+    # Validate clearance fit
+    fit(bolt_shaft, bolt_hole, "clearance")
+    
+    # Ensure no collision (they're at different positions)
+    # no_collision(bolt_shaft, bolt_hole)
+}
+
+use validated_bolt(10, 50, 10.5)
+
+# ============================================================================
+# WARNINGS AND BEST PRACTICES
+# ============================================================================
+
+# The language will warn about:
+# 1. Overlapping objects with no_collision constraint
+# 2. Objects outside containers with contained_in constraint
+# 3. Impossible fits (shaft > hole for clearance)
+# 4. Invalid geometric parameters (negative dimensions, etc.)
+# 5. Invalid enum values (thread types, tolerance types, etc.)
+# 6. Tolerance stack-ups that might cause issues
+# 7. Fixed objects being moved by constraints
+# 8. Conflicting constraints on the same object
+
+# Best practices:
+# 1. Always use 'fixed' on at least one reference object
+# 2. Apply tolerances before fit constraints
+# 3. Use no_collision for dynamic assemblies
+# 4. Use contained_in for nested parts
+# 5. Validate gear meshes with tangent constraints
+# 6. Set geometric tolerances on critical surfaces
+# 7. Use appropriate fit types (clearance for moving parts)
+# 8. Check dimensional tolerances don't cause interference
+
+print("Error handling examples complete")
