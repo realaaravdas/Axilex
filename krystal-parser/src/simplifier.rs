@@ -198,6 +198,7 @@ impl KrystalSimplifier {
     }
 
     /// Check if an operation is redundant
+    #[allow(dead_code)] // Will be used when redundancy removal is implemented
     fn is_redundant_operation(&self, line: &str) -> bool {
         // Identity transformations that do nothing
         let redundant_patterns = vec![
