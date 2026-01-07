@@ -1,0 +1,208 @@
+// Krystal CAD Language Grammar
+// Grammar definition for the Pest parser generator
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{ "#" ~ (!"\n" ~ ANY)* }
+
+// Entry point
+program = { SOI ~ statement* ~ EOI }
+
+statement = {
+    shape_stmt |
+    transform_stmt |
+    boolean_op |
+    module_def |
+    module_use |
+    constraint_stmt |
+    extrude_stmt |
+    surface_op |
+    plane_select |
+    hole_pattern |
+    tolerance_spec
+}
+
+// ============================================================================
+// BASIC SHAPES
+// ============================================================================
+
+shape_stmt = { shape ~ ("as" ~ identifier)? }
+
+shape = {
+    rect | circle | ellipse | polygon |
+    cube | sphere | cylinder | cone | torus | prism |
+    hole | gear | spring | beam | bearing
+}
+
+// 2D Shapes
+rect = { "rect" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+circle = { "circle" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+ellipse = { "ellipse" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+polygon = { "polygon" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+
+// 3D Shapes
+cube = { "cube" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+sphere = { "sphere" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+cylinder = { "cylinder" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+cone = { "cone" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+torus = { "torus" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+prism = { "prism" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+
+// Negative Space
+hole = { "hole" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+
+// Specialized Components
+gear = { "gear" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+spring = { "spring" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+beam = { "beam" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ string ~ ")" }
+bearing = { "bearing" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+
+// ============================================================================
+// TRANSFORMATIONS
+// ============================================================================
+
+transform_stmt = {
+    translate | rotate | scale | mirror
+}
+
+translate = { "translate" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ ")" ~ "{" ~ statement* ~ "}" }
+rotate = { "rotate" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" ~ "{" ~ statement* ~ "}" }
+scale = { "scale" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ ")" ~ "{" ~ statement* ~ "}" }
+mirror = { "mirror" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ ")" ~ "{" ~ statement* ~ "}" }
+
+// ============================================================================
+// BOOLEAN OPERATIONS
+// ============================================================================
+
+boolean_op = { union | subtract | intersect }
+
+union = { "union" ~ "{" ~ statement* ~ "}" }
+subtract = { "subtract" ~ "{" ~ statement* ~ "}" }
+intersect = { "intersect" ~ "{" ~ statement* ~ "}" }
+
+// ============================================================================
+// EXTRUSION & SURFACE OPERATIONS
+// ============================================================================
+
+extrude_stmt = { "extrude" ~ "(" ~ value ~ ")" ~ extrude_option? }
+extrude_option = { "cone" | "dome" | "hemisphere" }
+
+surface_op = {
+    revolve | sweep | loft | shell | offset | fillet | chamfer | bevel | thread
+}
+
+revolve = { "revolve" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" ~ "{" ~ statement* ~ "}" }
+sweep = { "sweep" ~ "(" ~ path_spec ~ ")" ~ "{" ~ statement* ~ "}" }
+loft = { "loft" ~ "{" ~ statement* ~ "}" }
+shell = { "shell" ~ "(" ~ value ~ ")" }
+offset = { "offset" ~ "(" ~ value ~ ")" }
+fillet = { "fillet" ~ "(" ~ value ~ "," ~ edge_spec ~ ")" }
+chamfer = { "chamfer" ~ "(" ~ value ~ "," ~ edge_spec ~ ")" }
+bevel = { "bevel" ~ "(" ~ value ~ "," ~ value ~ ")" }
+thread = { "thread" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ string ~ ")" }
+
+path_spec = { curve | spline | arc }
+edge_spec = { "edges" ~ "(" ~ string ~ ")" }
+
+curve = { "curve" ~ "(" ~ point_list ~ ")" }
+spline = { "spline" ~ "(" ~ point_list ~ "," ~ string ~ ")" }
+arc = { "arc" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+
+point_list = { point ~ ("," ~ point)* }
+point = { "(" ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+
+// ============================================================================
+// WORK PLANES
+// ============================================================================
+
+plane_select = { "plane" ~ "(" ~ plane_type ~ ")" ~ "{" ~ statement* ~ "}" }
+plane_type = { string }
+
+// ============================================================================
+// HOLE PATTERNS
+// ============================================================================
+
+hole_pattern = { linear_holes | circular_holes | grid_holes }
+
+linear_holes = { "linear_holes" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ spacing_spec ~ ")" }
+circular_holes = { "circular_holes" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+grid_holes = { "grid_holes" ~ "(" ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ "," ~ value ~ ")" }
+
+spacing_spec = { uniform_spacing | non_uniform_spacing }
+uniform_spacing = { "uniform" ~ "(" ~ value ~ ")" }
+non_uniform_spacing = { "non_uniform" ~ "(" ~ value_list ~ ")" }
+
+value_list = { value ~ ("," ~ value)* }
+
+// ============================================================================
+// MODULE SYSTEM
+// ============================================================================
+
+module_def = { "module" ~ identifier ~ "(" ~ param_list? ~ ")" ~ "{" ~ statement* ~ "}" }
+module_use = { "use" ~ identifier ~ "(" ~ value_list? ~ ")" }
+
+param_list = { identifier ~ ("," ~ identifier)* }
+
+// ============================================================================
+// CONSTRAINTS
+// ============================================================================
+
+constraint_stmt = {
+    align_x | align_y | align_z |
+    center_on_x | center_on_y | center_on_z |
+    distance_x | distance_y | distance_z |
+    fixed | tangent | perpendicular | parallel |
+    angle_constraint | no_collision | contained_in
+}
+
+align_x = { "align_x" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+align_y = { "align_y" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+align_z = { "align_z" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+
+center_on_x = { "center_on_x" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+center_on_y = { "center_on_y" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+center_on_z = { "center_on_z" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+
+distance_x = { "distance_x" ~ "(" ~ identifier ~ "," ~ identifier ~ "," ~ value ~ ")" }
+distance_y = { "distance_y" ~ "(" ~ identifier ~ "," ~ identifier ~ "," ~ value ~ ")" }
+distance_z = { "distance_z" ~ "(" ~ identifier ~ "," ~ identifier ~ "," ~ value ~ ")" }
+
+fixed = { "fixed" ~ "(" ~ identifier ~ ")" }
+tangent = { "tangent" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+perpendicular = { "perpendicular" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+parallel = { "parallel" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+angle_constraint = { "angle" ~ "(" ~ identifier ~ "," ~ identifier ~ "," ~ value ~ ")" }
+no_collision = { "no_collision" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+contained_in = { "contained_in" ~ "(" ~ identifier ~ "," ~ identifier ~ ")" }
+
+// ============================================================================
+// TOLERANCES
+// ============================================================================
+
+tolerance_spec = {
+    dimensional_tolerance | geometric_tolerance | fit_tolerance
+}
+
+dimensional_tolerance = { "tolerance" ~ "(" ~ identifier ~ "," ~ value ~ "," ~ value ~ ")" }
+geometric_tolerance = { "geometric_tolerance" ~ "(" ~ identifier ~ "," ~ string ~ "," ~ value ~ ")" }
+fit_tolerance = { "fit" ~ "(" ~ identifier ~ "," ~ identifier ~ "," ~ string ~ ")" }
+
+// ============================================================================
+// VALUE EXPRESSIONS
+// ============================================================================
+
+value = { term ~ ((add_op | sub_op) ~ term)* }
+term = { factor ~ ((mul_op | div_op) ~ factor)* }
+factor = { number | identifier | "(" ~ value ~ ")" }
+
+add_op = { "+" }
+sub_op = { "-" }
+mul_op = { "*" }
+div_op = { "/" }
+
+// ============================================================================
+// PRIMITIVES
+// ============================================================================
+
+identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+number = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+string = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }

@@ -1,1 +1,7 @@
 __pycache__/
+
+# Rust
+krystal-parser/target/
+krystal-parser/Cargo.lock
+*.rs.bk
+
