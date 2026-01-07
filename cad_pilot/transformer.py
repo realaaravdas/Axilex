@@ -2,7 +2,6 @@ from lark import Transformer, Tree, Token
 from .core.geometry import Rectangle, Cube, Sphere, Cylinder, Cone, Shape
 from .core.scene import Scene
 import cadquery as cq
-import warnings
 
 class ConstraintError(Exception):
     """Raised when a constraint cannot be satisfied"""
@@ -510,10 +509,10 @@ class CadTransformer(Transformer):
         x, y, z, radius, depth = args
         print(f"[STUB] Creating hole at ({x}, {y}, {z}) with radius {radius}, depth {depth}")
         # Holes are represented as cylinders that will be subtracted
-        # TODO: Mark as negative space for automatic subtraction
+        # TODO: Create a dedicated Hole class or mark in a better way
         hole_cyl = Cylinder(x, y, z, radius, depth)
-        # Mark it as a hole somehow
-        hole_cyl._is_hole = True
+        # Note: In full implementation, holes should be handled as negative space
+        # automatically subtracted from intersecting objects
         return hole_cyl
     
     # ========================================================================
