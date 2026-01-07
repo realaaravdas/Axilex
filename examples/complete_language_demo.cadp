@@ -1,0 +1,421 @@
+# Complete KRYSTALcad Language Demonstration
+# This file showcases all features of the extended CAD language
+
+# ============================================================================
+# BASIC 2D SHAPES
+# ============================================================================
+
+# Rectangle (x, y, width, height)
+rect(0, 0, 10, 5)
+
+# Circle (x, y, radius)
+circle(20, 0, 5)
+
+# Ellipse (x, y, major_radius, minor_radius)
+ellipse(40, 0, 8, 4)
+
+# Polygon (x, y, radius, sides) - creates regular polygon
+polygon(60, 0, 5, 6)  # Hexagon
+
+# ============================================================================
+# BASIC 3D SHAPES
+# ============================================================================
+
+# Cube (x, y, z, size)
+cube(0, 20, 0, 10) as box1
+
+# Sphere (x, y, z, radius)
+sphere(20, 20, 0, 5) as ball1
+
+# Cylinder (x, y, z, radius, height)
+cylinder(40, 20, 0, 4, 15) as cyl1
+
+# Cone (x, y, z, bottom_radius, top_radius, height)
+cone(60, 20, 0, 5, 2, 12) as cone1
+
+# Torus (x, y, z, major_radius, minor_radius)
+torus(80, 20, 0, 8, 2) as torus1
+
+# Prism (x, y, z, radius, sides, height)
+prism(100, 20, 0, 5, 6, 15) as prism1
+
+# ============================================================================
+# NEGATIVE SPACE / HOLES
+# ============================================================================
+
+# Hole (x, y, z, radius, depth) - creates negative space
+hole(10, 10, 10, 2, 5)
+
+# ============================================================================
+# SPECIALIZED COMPONENTS
+# ============================================================================
+
+# Gear (x, y, z, module, teeth, pressure_angle, height)
+gear(0, 50, 0, 2, 20, 20, 5) as gear1
+
+# Spring (x, y, z, radius, wire_diameter, coils, pitch)
+spring(30, 50, 0, 5, 1, 10, 2) as spring1
+
+# Beam (x, y, z, length, width, type)
+# Types: "i", "t", "l", "c", "box"
+beam(60, 50, 0, 50, 10, "i") as beam1
+
+# Bearing (x, y, z, inner_diameter, outer_diameter, width)
+bearing(120, 50, 0, 10, 20, 8) as bearing1
+
+# ============================================================================
+# EXTRUSION WITH OPTIONS
+# ============================================================================
+
+# Standard extrusion
+rect(0, 100, 10, 10)
+extrude(15)
+
+# Extrude as cone
+circle(20, 100, 5)
+extrude(20) cone
+
+# Extrude as dome/hemisphere
+circle(40, 100, 5)
+extrude(10) dome
+
+circle(60, 100, 5)
+extrude(10) hemisphere
+
+# ============================================================================
+# SURFACE OPERATIONS
+# ============================================================================
+
+# Revolve (axis_x, axis_y, axis_z, angle)
+revolve(0, 1, 0, 360) {
+    rect(10, 0, 5, 20)
+}
+
+# Sweep along path
+sweep(spline((0,0,0), (10,5,0), (20,0,5), (30,5,10), "bezier")) {
+    circle(0, 0, 2)
+}
+
+# Loft between profiles
+loft {
+    circle(0, 0, 5)
+    translate(0, 0, 20) {
+        rect(-3, -3, 6, 6)
+    }
+}
+
+# Shell (hollow out with thickness)
+cube(0, 0, 0, 20)
+shell(2)
+
+# Offset (expand/contract)
+cube(30, 0, 0, 15)
+offset(2)
+
+# Fillet (round edges)
+cube(50, 0, 0, 12)
+fillet(2, edges("all"))
+
+# Chamfer (bevel edges)
+cube(70, 0, 0, 12)
+chamfer(2, edges("top"))
+
+# Bevel (distance, angle)
+cube(90, 0, 0, 12)
+bevel(2, 45)
+
+# Thread (diameter, pitch, length, type)
+# Types: "metric", "imperial", "acme", "buttress"
+cylinder(110, 0, 0, 5, 30)
+thread(10, 1.5, 25, "metric")
+
+# ============================================================================
+# CURVES AND PATHS
+# ============================================================================
+
+# Arc (center_x, center_y, radius, start_angle, end_angle)
+arc(0, 0, 10, 0, 180)
+
+# Bezier curve through points
+curve((0,0,0), (10,10,5), (20,5,10), (30,15,5))
+
+# Interpolated spline
+spline((0,0,0), (10,10,0), (20,5,5), (30,15,10), "interpolate")
+
+# Approximated spline
+spline((0,0,0), (10,10,0), (20,5,5), (30,15,10), "approximate")
+
+# ============================================================================
+# WORK PLANES
+# ============================================================================
+
+# XY plane (default)
+plane("XY") {
+    rect(0, 0, 10, 10)
+    extrude(5)
+}
+
+# XZ plane
+plane("XZ") {
+    rect(0, 0, 10, 10)
+    extrude(5)
+}
+
+# YZ plane
+plane("YZ") {
+    rect(0, 0, 10, 10)
+    extrude(5)
+}
+
+# Custom plane (origin_x, origin_y, origin_z, normal_x, normal_y, normal_z)
+plane("custom"(10, 10, 10, 1, 1, 0)) {
+    rect(0, 0, 8, 8)
+}
+
+# ============================================================================
+# HOLE PATTERNS
+# ============================================================================
+
+# Linear holes with uniform spacing
+# (x, y, z, radius, depth, count, spacing)
+linear_holes(0, 0, 0, 2, 10, 5, uniform(10))
+
+# Linear holes with non-uniform spacing
+linear_holes(0, 20, 0, 2, 10, 5, non_uniform(5, 10, 15, 20, 25))
+
+# Circular hole pattern
+# (center_x, center_y, center_z, pattern_radius, hole_radius, hole_depth, count)
+circular_holes(50, 50, 0, 20, 3, 15, 8)
+
+# Grid of holes
+# (x, y, z, radius, depth, rows, cols, spacing)
+grid_holes(0, 80, 0, 2, 10, 4, 5, 10)
+
+# ============================================================================
+# BOOLEAN OPERATIONS
+# ============================================================================
+
+# Union
+union {
+    cube(0, 0, 0, 10)
+    sphere(10, 10, 5, 8)
+}
+
+# Subtract (first shape - rest)
+subtract {
+    cube(30, 0, 0, 15)
+    sphere(37.5, 7.5, 7.5, 5)
+    cylinder(37.5, 7.5, 0, 2, 15)
+}
+
+# Intersect (common volume)
+intersect {
+    cube(60, 0, 0, 12)
+    sphere(66, 6, 6, 8)
+}
+
+# ============================================================================
+# TRANSFORMATIONS
+# ============================================================================
+
+# Translation
+translate(10, 20, 30) {
+    cube(0, 0, 0, 5)
+}
+
+# Rotation (angle, axis_x, axis_y, axis_z)
+rotate(45, 0, 0, 1) {
+    cube(0, 0, 0, 8)
+}
+
+# Scale (x, y, z)
+scale(2, 1, 0.5) {
+    cube(0, 0, 0, 10)
+}
+
+# Mirror (normal_x, normal_y, normal_z)
+mirror(1, 0, 0) {
+    cone(0, 0, 0, 5, 2, 10)
+}
+
+# ============================================================================
+# ENHANCED CONSTRAINTS
+# ============================================================================
+
+cube(0, 0, 0, 10) as obj1
+cube(20, 0, 0, 8) as obj2
+sphere(40, 0, 0, 6) as obj3
+
+# Basic alignment
+align_x(obj2, obj1)
+align_y(obj2, obj1)
+align_z(obj3, obj1)
+
+# Centering
+center_on_x(obj2, obj1)
+center_on_y(obj2, obj1)
+center_on_z(obj3, obj1)
+
+# Distance constraints
+distance_x(obj1, obj2, 5)
+distance_y(obj1, obj2, 3)
+distance_z(obj1, obj3, 2)
+
+# Fixed constraint (object won't move)
+fixed(obj1)
+
+# Tangent constraint (objects touch but don't overlap)
+tangent(obj1, obj2)
+
+# Perpendicular constraint
+perpendicular(obj1, obj2)
+
+# Parallel constraint
+parallel(obj1, obj2)
+
+# Angle constraint (angle between objects in degrees)
+angle(obj1, obj2, 90)
+
+# No collision constraint (prevents overlap)
+no_collision(obj1, obj2)
+
+# Containment constraint (obj2 must be inside obj1)
+contained_in(obj2, obj1)
+
+# ============================================================================
+# TOLERANCES
+# ============================================================================
+
+cube(0, 0, 0, 10) as part1
+cylinder(20, 0, 0, 5, 15) as shaft1
+
+# Dimensional tolerance (object, plus_tolerance, minus_tolerance)
+tolerance(part1, 0.1, 0.05)
+
+# Geometric tolerance (object, type, value)
+# Types: "flatness", "straightness", "circularity", "cylindricity",
+#        "perpendicularity", "parallelism", "angularity",
+#        "position", "concentricity", "symmetry", "runout"
+geometric_tolerance(part1, "flatness", 0.02)
+geometric_tolerance(shaft1, "cylindricity", 0.01)
+
+# Fit tolerance (object1, object2, fit_type)
+# Types: "clearance", "transition", "interference"
+fit(shaft1, part1, "clearance")
+
+# ============================================================================
+# MODULE SYSTEM WITH ADVANCED FEATURES
+# ============================================================================
+
+# Define a module for a screw with hole pattern
+module screw_mount(width, height, screw_radius, screw_count) {
+    subtract {
+        cube(0, 0, 0, width)
+        translate(0, 0, height) {
+            linear_holes(width/4, height/2, 0, screw_radius, height, screw_count, uniform(width/(screw_count+1)))
+        }
+    }
+}
+
+# Use the module
+use screw_mount(50, 10, 2, 4)
+
+# Module with bearing mount
+module bearing_mount(bearing_id, bearing_od, bearing_width, mount_thickness) {
+    subtract {
+        cylinder(0, 0, 0, bearing_od + mount_thickness, bearing_width + 2*mount_thickness)
+        translate(0, 0, mount_thickness) {
+            cylinder(0, 0, 0, bearing_od/2, bearing_width)
+        }
+    }
+}
+
+use bearing_mount(10, 22, 7, 3)
+
+# Module with gear assembly
+module gear_assembly(module_val, teeth1, teeth2, center_distance) {
+    gear(0, 0, 0, module_val, teeth1, 20, 8)
+    translate(center_distance, 0, 0) {
+        gear(0, 0, 0, module_val, teeth2, 20, 8)
+    }
+}
+
+use gear_assembly(2, 20, 30, 52)
+
+# ============================================================================
+# ERROR HANDLING EXAMPLES (These would generate errors/warnings)
+# ============================================================================
+
+# The following would fail constraint checking:
+# - Objects that overlap when no_collision is specified
+# - Impossible geometric constraints (e.g., object outside container with contained_in)
+# - Clearance fit where objects interfere
+# - Parallel constraint on perpendicular objects
+
+# Example of potentially conflicting constraints:
+cube(0, 0, 0, 10) as test1
+cube(5, 5, 5, 10) as test2
+
+# This should generate a collision warning
+no_collision(test1, test2)
+
+# This would fail as test2 overlaps test1's boundary
+contained_in(test2, test1)
+
+# ============================================================================
+# COMPLEX ASSEMBLIES
+# ============================================================================
+
+# Threaded bolt assembly
+module bolt(diameter, length, head_diameter, head_height) {
+    union {
+        # Bolt head
+        cylinder(0, 0, 0, head_diameter/2, head_height)
+        
+        # Bolt shaft
+        translate(0, 0, head_height) {
+            cylinder(0, 0, 0, diameter/2, length)
+            thread(diameter, diameter*0.15, length, "metric")
+        }
+    }
+}
+
+use bolt(10, 50, 16, 8)
+
+# Spring-loaded mechanism
+module spring_mechanism(spring_radius, spring_length, spring_coils) {
+    union {
+        # Base plate
+        cube(0, 0, 0, 40)
+        
+        # Spring
+        translate(20, 20, 5) {
+            spring(0, 0, 0, spring_radius, 1.5, spring_coils, spring_length/spring_coils)
+        }
+        
+        # Top plate
+        translate(0, 0, spring_length + 10) {
+            cube(0, 0, 0, 40)
+        }
+    }
+}
+
+use spring_mechanism(8, 50, 15)
+
+# Pulley system
+module pulley(diameter, width, shaft_diameter) {
+    subtract {
+        # Pulley body
+        cylinder(0, 0, 0, diameter/2, width)
+        
+        # Shaft hole
+        cylinder(0, 0, 0, shaft_diameter/2, width)
+        
+        # Groove
+        translate(0, 0, width/2) {
+            torus(0, 0, 0, diameter/2 - 2, 2)
+        }
+    }
+}
+
+use pulley(40, 15, 8)
