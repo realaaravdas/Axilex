@@ -3,5 +3,7 @@ __pycache__/
 # Rust
 krystal-parser/target/
 krystal-parser/Cargo.lock
+krystal-renderer/target/
+krystal-renderer/Cargo.lock
 *.rs.bk
 

@@ -1,0 +1,23 @@
+[package]
+name = "krystal-renderer"
+version = "0.1.0"
+edition = "2021"
+authors = ["Axilex Team"]
+description = "3D interactive renderer for the Krystal CAD language"
+
+[dependencies]
+krystal_parser = { path = "../krystal-parser" }
+bevy = { version = "0.14", default-features = false, features = [
+    "bevy_winit",
+    "bevy_core_pipeline",
+    "bevy_pbr",
+    "bevy_gltf",
+    "bevy_render",
+    "bevy_sprite",
+    "bevy_text",
+    "bevy_ui",
+    "x11",
+    "png",
+    "tonemapping_luts",
+    "multi_threaded",
+] }
