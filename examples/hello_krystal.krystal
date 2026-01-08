@@ -1,0 +1,30 @@
+# Hello Krystal - Example CAD Model
+# This is an example file using the .krystal extension
+
+# Create a simple box with a cylindrical hole through the center
+subtract {
+    cube(0, 0, 0, 20) as main_box
+    cylinder(10, 10, 0, 5, 20) as center_hole
+}
+
+# Create a module for a mounting bracket
+module bracket(width, height, thickness) {
+    cube(0, 0, 0, width) as base
+    translate(0, 0, height) {
+        cube(0, 0, 0, thickness)
+    }
+}
+
+# Use the bracket module
+translate(25, 0, 0) {
+    use bracket(15, 10, 3)
+}
+
+# Add a sphere on top
+sphere(30, 30, 25, 8) as top_sphere
+
+# Align the sphere with the box
+# Note: Constraints reference named objects
+center_on_x(top_sphere, main_box)
+distance_z(main_box, top_sphere, 5)
+

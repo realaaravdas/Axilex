@@ -1,0 +1,22 @@
+[package]
+name = "krystal_parser"
+version = "0.1.0"
+edition = "2021"
+authors = ["Axilex Team"]
+description = "Parser and simplifier for the Krystal CAD language"
+
+[dependencies]
+pest = "2.7"
+pest_derive = "2.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+
+[[example]]
+name = "test_parse"
+path = "test_parse.rs"
+
+[[example]]
+name = "test_simplifier"
+path = "test_simplifier.rs"
