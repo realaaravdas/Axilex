@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use krystal_parser::{KrystalParser, Statement, Shape, Value};
+use crate::constraints::CollisionRadius;
 
 #[derive(Component)]
 pub struct KrystalObject {
@@ -58,7 +59,7 @@ fn create_shape_geometry(
     shape: &Shape,
     name: &Option<String>,
 ) {
-    let (mesh, transform, color) = match shape {
+    let (mesh, transform, color, collision_radius) = match shape {
         Shape::Cube { x, y, z, size } => {
             let pos = Vec3::new(
                 extract_value(x),
@@ -70,6 +71,7 @@ fn create_shape_geometry(
                 meshes.add(Cuboid::new(size_val, size_val, size_val)),
                 Transform::from_translation(pos),
                 Color::srgb(0.3, 0.5, 0.8),
+                size_val * 0.866, // Diagonal of cube / 2
             )
         }
         Shape::Sphere { x, y, z, radius } => {
@@ -83,6 +85,7 @@ fn create_shape_geometry(
                 meshes.add(Sphere::new(r).mesh().ico(32).unwrap()),
                 Transform::from_translation(pos),
                 Color::srgb(0.8, 0.3, 0.5),
+                r,
             )
         }
         Shape::Cylinder { x, y, z, radius, height } => {
@@ -97,6 +100,7 @@ fn create_shape_geometry(
                 meshes.add(Cylinder::new(r, h)),
                 Transform::from_translation(pos),
                 Color::srgb(0.5, 0.8, 0.3),
+                r.max(h / 2.0),
             )
         }
         Shape::Cone { x, y, z, bottom_radius, top_radius: _, height } => {
@@ -111,6 +115,7 @@ fn create_shape_geometry(
                 meshes.add(Cylinder::new(r, h)), // Use cylinder for now, cone mesh builder varies by bevy version
                 Transform::from_translation(pos),
                 Color::srgb(0.8, 0.5, 0.3),
+                r.max(h / 2.0),
             )
         }
         _ => {
@@ -119,6 +124,7 @@ fn create_shape_geometry(
                 meshes.add(Cuboid::new(10.0, 10.0, 10.0)),
                 Transform::default(),
                 Color::srgb(0.5, 0.5, 0.5),
+                8.66,
             )
         }
     };
@@ -140,6 +146,7 @@ fn create_shape_geometry(
             moveable: true,
         },
         Selectable,
+        CollisionRadius(collision_radius),
     ));
 }
 

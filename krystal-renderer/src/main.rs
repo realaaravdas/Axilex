@@ -7,11 +7,12 @@ mod geometry;
 mod camera;
 mod ui;
 mod scene;
+mod constraints;
 
-use geometry::*;
 use camera::*;
 use ui::*;
 use scene::*;
+use constraints::*;
 
 fn main() {
     // Get command line arguments
@@ -53,5 +54,7 @@ fn main() {
         .add_systems(Update, handle_axis_toggle)
         .add_systems(Update, update_axis_grid)
         .add_systems(Update, object_interaction)
+        .add_systems(Update, apply_constraints)
+        .add_systems(Update, check_collisions)
         .run();
 }
