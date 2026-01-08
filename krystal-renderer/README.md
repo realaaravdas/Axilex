@@ -107,14 +107,18 @@ Currently implemented:
 - ✅ Positioning (x, y, z coordinates)
 - ✅ Object naming
 - ✅ Multiple objects in a scene
+- ✅ Sphere-based collision detection
+- ✅ Basic constraint system (alignment, distance)
 
 Planned for future releases:
 - ⏳ Boolean operations (union, subtract, intersect)
 - ⏳ Transformations (translate, rotate, scale, mirror)
 - ⏳ Module system
 - ⏳ Full constraint solving
-- ⏳ Collision detection
 - ⏳ Advanced shapes (torus, prism, etc.)
+- ⏳ 2D shape extrusion
+- ⏳ Material properties
+- ⏳ Export functionality (STL, STEP)
 
 ## Technical Details
 
@@ -122,6 +126,43 @@ Planned for future releases:
 - **Graphics**: Vulkan/DirectX 12/Metal (via wgpu)
 - **Shading**: PBR (Physically Based Rendering)
 - **Lighting**: Directional + Point lights for realistic shading
+- **Collision Detection**: Sphere-based bounding volumes
+- **Constraints**: Real-time constraint solving for object positioning
+
+### Architecture Details
+
+The renderer is built with a modular architecture:
+
+1. **Parser Integration** - Uses the `krystal_parser` crate to parse `.krystal` files into AST
+2. **Geometry Generation** - Converts AST nodes into Bevy mesh primitives
+3. **ECS Design** - Leverages Bevy's Entity Component System for efficient scene management
+4. **Component-Based Interaction** - Objects are entities with components:
+   - `KrystalObject` - Core object data (name, moveability)
+   - `Selectable` - Marks objects as selectable
+   - `Selected` - Marks currently selected object
+   - `CollisionRadius` - Bounding sphere for collision detection
+   - `Constraint` - Defines positional constraints
+
+### Coordinate System
+
+Krystal uses a right-handed coordinate system with Y-up. The renderer automatically converts to Bevy's coordinate system internally.
+
+### Collision System
+
+Objects have spherical bounding volumes for collision detection. When objects overlap:
+1. Calculate distance between centers
+2. If distance < sum of radii, objects collide
+3. Push objects apart along the collision normal
+4. Apply 50% of separation to each object
+
+### Constraint System
+
+Constraints are applied each frame after user input:
+- **Fixed** - Object cannot move
+- **AlignX/Y/Z** - Align object position with target on specified axis
+- **DistanceX/Y/Z** - Maintain fixed distance from target on specified axis
+
+Constraints are enforced in order, allowing for constraint hierarchies.
 
 ## Performance
 
