@@ -4,7 +4,7 @@
 **Language:** Krystal  
 **File Extension:** `.krystal` (modern) / `.cadp` (legacy)
 
-A comprehensive CAD language and compiler with a custom domain-specific language (DSL) for creating 3D models. Features both Python (geometry backend) and Rust (parser/simplifier) implementations.
+A comprehensive CAD language with a custom domain-specific language (DSL) for creating 3D models. Features a Rust-based parser and interactive 3D renderer.
 
 ## Features
 
@@ -25,13 +25,19 @@ Krystal provides a powerful, intuitive language for CAD modeling with:
 ### Installation
 
 ```bash
-pip install -r requirements.txt
+# Install Rust (if not already installed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Build the renderer
+cd krystal-renderer
+cargo build --release
 ```
 
-### Running the Application
+### Running the Renderer
 
 ```bash
-python -m cad_pilot.renderer.ui.launcher
+cd krystal-renderer
+cargo run --release -- ../examples/hello_krystal.krystal
 ```
 
 ### Basic Example
@@ -62,6 +68,7 @@ New projects should use `.krystal` extension.
 - **[Quick Reference](docs/QUICK_REFERENCE.md)** - Quick syntax guide (8KB)
 - **[Feature Matrix](docs/FEATURE_MATRIX.md)** - Visual feature overview (10KB)
 - **[Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md)** - Technical details (10KB)
+- **[Renderer Documentation](krystal-renderer/README.md)** - 3D renderer usage and controls
 
 ## Examples
 
@@ -76,26 +83,32 @@ See the `examples/` directory for comprehensive examples:
 
 ## Architecture
 
-### Rust Components (New!)
+### Rust Renderer (New!)
+
+**Krystal Renderer** (`krystal-renderer/`)
+- Interactive 3D visualization with Bevy game engine
+- Real-time rendering with PBR materials
+- Camera controls: orbit, pan, zoom
+- Object selection and movement
+- Multiple background themes
+- Axis grid system with dotted/solid options
+- Keyboard and mouse controls
+
+**Status:** Core rendering implemented. Basic shape support, interactive camera, and object manipulation functional.
+
+See [krystal-renderer/README.md](krystal-renderer/README.md) for detailed usage.
+
+### Rust Parser
 
 **Krystal Parser** (`krystal-parser/`)
 - Fast syntax validation using Pest parser
 - Complete AST definitions
 - Code simplifier with `@noformat` protection markers
-- Foundation for future pure-Rust geometry engine
+- Foundation for the 3D renderer
 
-**Status:** Partial implementation - syntax validation and simplification complete, full geometry backend pending.
+**Status:** Parser and AST complete. Geometry evaluation integrated with renderer.
 
 See [krystal-parser/README.md](krystal-parser/README.md) for details.
-
-### Python Components (Existing)
-
-**Geometry Backend** (`cad_pilot/`)
-- CadQuery-based 3D geometry evaluation
-- PyVista rendering
-- Module system with parameters
-- Constraint solver
-- Export to STL, STEP, DXF
 
 ## Language Features
 
@@ -104,19 +117,19 @@ See [krystal-parser/README.md](krystal-parser/README.md) for details.
 - 3D: cubes, spheres, cylinders, cones, tori, prisms
 - Specialized: gears, springs, beams, bearings, holes
 
-### Operations
+### Operations (Planned)
 - Transformations: translate, rotate, scale, mirror
 - Boolean: union, subtract, intersect
 - Surface: revolve, sweep, loft, shell, offset, fillet, chamfer, bevel
 
-### Constraints
+### Constraints (Planned)
 - Alignment: align_x, align_y, align_z
 - Centering: center_on_x, center_on_y, center_on_z
 - Distance: distance_x, distance_y, distance_z
 - Geometric: tangent, perpendicular, parallel, angle
 - Validation: no_collision, contained_in, fixed
 
-### Advanced Features
+### Advanced Features (Planned)
 - Tolerances (dimensional, geometric GD&T, fit types)
 - Hole patterns (linear, circular, grid)
 - Work planes (XY, XZ, YZ, custom)
@@ -125,36 +138,45 @@ See [krystal-parser/README.md](krystal-parser/README.md) for details.
 
 ## Development
 
-### Language Specification
-The Krystal language specification is complete with:
-- ✅ 180-line grammar definition (Lark for Python, Pest for Rust)
-- ✅ 900+ line transformer with validation (Python)
-- ✅ Complete AST definitions (Rust)
-- ✅ Code simplifier with protection markers (Rust)
-- ✅ 73/73 tests passing (100% coverage - Python)
-- ✅ 6/6 tests passing (Rust parser)
-- ✅ 65KB+ of documentation
-- ✅ Full error handling
-
-### Building Rust Parser
+### Building Rust Components
 
 ```bash
+# Build parser
 cd krystal-parser
 cargo build
 cargo test
+
+# Build renderer
+cd krystal-renderer
+cargo build --release
 ```
 
-### Python Backend
+### Running Tests
 
 ```bash
-python3 -c "from cad_pilot.parser import CadParser; parser = CadParser(); print('✓ Parser OK')"
+# Rust parser tests
+cd krystal-parser
+cargo test
+
+# Renderer can be tested with example files
+cd krystal-renderer
+cargo run --release -- ../examples/hello_krystal.krystal
 ```
 
 ## Project Structure
 
 ```
 -Axilex/
-├── krystal-parser/         # 🆕 Rust parser and simplifier
+├── krystal-renderer/      # 🆕 Rust 3D renderer
+│   ├── src/
+│   │   ├── main.rs        # Application entry
+│   │   ├── geometry.rs    # Geometry parsing
+│   │   ├── camera.rs      # Camera controls
+│   │   ├── scene.rs       # Scene management
+│   │   └── ui.rs          # UI and settings
+│   ├── Cargo.toml
+│   └── README.md
+├── krystal-parser/        # Rust parser
 │   ├── src/
 │   │   ├── lib.rs         # Main library
 │   │   ├── parser.rs      # Pest-based parser
@@ -163,56 +185,54 @@ python3 -c "from cad_pilot.parser import CadParser; parser = CadParser(); print(
 │   │   └── krystal.pest   # Grammar definition
 │   ├── Cargo.toml
 │   └── README.md
-├── cad_pilot/             # Python geometry backend
-│   ├── parser.py          # Lark grammar
-│   ├── transformer.py     # AST transformation
-│   ├── exporter.py        # Export to STL, STEP, DXF
-│   ├── core/
-│   │   ├── geometry.py    # Shape classes
-│   │   └── scene.py       # Scene management
-│   └── renderer/          # UI components
 ├── docs/                  # Documentation
-│   ├── KRYSTAL_SPEC_MINIMAL.md     # 🆕 Token-optimized AI spec
-│   ├── KRYSTAL_SPEC_TRAINING.md    # 🆕 Training AI spec
+│   ├── KRYSTAL_SPEC_MINIMAL.md     # Token-optimized AI spec
+│   ├── KRYSTAL_SPEC_TRAINING.md    # Training AI spec
 │   ├── LANGUAGE_REFERENCE.md
 │   └── ...
 ├── examples/              # Example files
-│   ├── hello_krystal.krystal  # 🆕 Modern .krystal example
+│   ├── hello_krystal.krystal  # Modern .krystal example
 │   ├── *.cadp             # Legacy examples
 │   └── ...
-└── requirements.txt       # Python dependencies
+└── README.md
 ```
 
-## Testing
+## Controls (Renderer)
 
-### Python Tests
-Run the Python test suite:
+### Camera
+- Right Click + Drag: Orbit
+- Shift + Right Click + Drag: Pan
+- Scroll Wheel: Zoom
+- Arrow Keys: Orbit
+- W/A/S/D: Pan
+- +/-: Zoom
 
-```bash
-python3 -c "from cad_pilot.parser import CadParser; parser = CadParser(); print('✓ Parser OK')"
-```
+### Interaction
+- Left Click: Select Object
+- I/K/J/L/U/O: Move Selected Object
 
-### Rust Tests
-Run the Rust test suite:
+### Settings
+- B: Change Background
+- G: Toggle Axis Grid
+- X: Toggle Axis Style (dotted/solid)
+- ESC: Exit
 
-```bash
-cd krystal-parser
-cargo test
-```
+## Status
 
-## Contributing
+🎉 **Rust Renderer: COMPLETE (v0.1)**
 
-The language specification is complete and ready for implementation. See the [Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md) for details on the current state and next steps.
+- ✅ Legacy Python code removed
+- ✅ Rust parser functional
+- ✅ 3D interactive renderer built with Bevy
+- ✅ Camera controls (orbit, pan, zoom)
+- ✅ Object interaction (selection, movement)
+- ✅ Multiple background themes
+- ✅ Axis grid (dotted/solid)
+- ✅ Proper shading and lighting
+- ✅ Basic shape support (cube, sphere, cylinder, cone)
+- ⏳ Advanced features (boolean ops, constraints, etc.) planned for future releases
 
 ## License
 
 [License information to be added]
 
-## Status
-
-🎉 **Language Specification: COMPLETE (100%)**
-
-- All 18 original requirements implemented
-- 50+ language features defined and tested
-- Comprehensive documentation available
-- Ready for full geometry implementation

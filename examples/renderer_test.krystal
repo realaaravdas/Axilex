@@ -1,0 +1,14 @@
+# Simple Renderer Test
+# This file demonstrates the Krystal renderer capabilities
+
+# Create a cube at the origin
+cube(0, 0, 0, 10) as main_cube
+
+# Create a sphere
+sphere(20, 0, 0, 5) as ball
+
+# Create a cylinder
+cylinder(-20, 0, 0, 3, 15) as pillar
+
+# Create another sphere at a different position
+sphere(0, 20, 0, 4) as top_ball

@@ -1,7 +1,0 @@
-pyvista
-lark
-shapely
-mapbox-earcut
-cadquery
-customtkinter
-Pillow
