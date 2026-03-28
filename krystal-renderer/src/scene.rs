@@ -70,28 +70,64 @@ fn create_axis_grid(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     dotted: bool,
 ) {
-    let grid_size = 50.0;
-    let grid_spacing = 5.0;
-    let line_count = (grid_size / grid_spacing) as i32;
+    // Fine grid covers ±150, sparse outer layer extends to ±500 for visual infinity.
+    // The two-tier density gives a natural depth-cue without spawning thousands of entities.
+    let fine_spacing  = 10.0f32;
+    let fine_extent   = 150.0f32; // ±150 at 10-unit spacing → 31×31 = 961 dots / 62 lines
+    let outer_spacing = 50.0f32;
+    let outer_extent  = 500.0f32; // ±500 at 50-unit spacing (skipping inner zone)
+    let axis_extent   = 500.0f32; // Axes run ±500 in both directions
+
+    let fine_count  = (fine_extent  / fine_spacing)  as i32; // 15
+    let outer_count = (outer_extent / outer_spacing) as i32; // 10
+    // Inner zone boundary in outer-spacing units (floor), used to skip duplicates
+    let inner_limit = (fine_extent  / outer_spacing) as i32; // 3  (covers ±150)
 
     if dotted {
-        // Place a small dot at every grid intersection point on the XZ plane
         let dot_mesh = meshes.add(Sphere::new(1.0).mesh().ico(1).unwrap());
-        let dot_material = materials.add(StandardMaterial {
-            base_color: Color::srgb(0.35, 0.35, 0.35),
+        let fine_mat = materials.add(StandardMaterial {
+            base_color: Color::srgb(0.30, 0.30, 0.30),
             unlit: true,
             ..default()
         });
-        for i in -line_count..=line_count {
-            for j in -line_count..=line_count {
-                let x = i as f32 * grid_spacing;
-                let z = j as f32 * grid_spacing;
+        let outer_mat = materials.add(StandardMaterial {
+            base_color: Color::srgb(0.22, 0.22, 0.22), // dimmer the further out
+            unlit: true,
+            ..default()
+        });
+
+        // Dense inner grid
+        for i in -fine_count..=fine_count {
+            for j in -fine_count..=fine_count {
                 commands.spawn((
                     PbrBundle {
                         mesh: dot_mesh.clone(),
-                        material: dot_material.clone(),
-                        transform: Transform::from_translation(Vec3::new(x, 0.0, z))
-                            .with_scale(Vec3::splat(0.08)),
+                        material: fine_mat.clone(),
+                        transform: Transform::from_translation(
+                            Vec3::new(i as f32 * fine_spacing, 0.0, j as f32 * fine_spacing),
+                        )
+                        .with_scale(Vec3::splat(0.05)),
+                        ..default()
+                    },
+                    AxisGrid,
+                ));
+            }
+        }
+
+        // Sparse outer ring — skip positions already covered by the fine grid
+        for i in -outer_count..=outer_count {
+            for j in -outer_count..=outer_count {
+                if i.abs() <= inner_limit && j.abs() <= inner_limit {
+                    continue; // already covered by fine grid
+                }
+                commands.spawn((
+                    PbrBundle {
+                        mesh: dot_mesh.clone(),
+                        material: outer_mat.clone(),
+                        transform: Transform::from_translation(
+                            Vec3::new(i as f32 * outer_spacing, 0.0, j as f32 * outer_spacing),
+                        )
+                        .with_scale(Vec3::splat(0.05)),
                         ..default()
                     },
                     AxisGrid,
@@ -99,45 +135,50 @@ fn create_axis_grid(
             }
         }
     } else {
-        // Solid grid lines on the XZ plane
+        // Solid lines: fine grid spanning ±400 (large enough to look infinite from default view)
+        let line_extent = 400.0f32;
+        let line_count  = (line_extent / fine_spacing) as i32;
         for i in -line_count..=line_count {
-            let offset = i as f32 * grid_spacing;
+            let offset = i as f32 * fine_spacing;
             spawn_axis_line(
                 commands, meshes, materials,
-                Vec3::new(-grid_size, 0.0, offset),
-                Vec3::new(grid_size, 0.0, offset),
-                Color::srgb(0.22, 0.22, 0.22),
+                Vec3::new(-line_extent, 0.0, offset),
+                Vec3::new( line_extent, 0.0, offset),
+                Color::srgb(0.18, 0.18, 0.18),
+                0.015,
             );
             spawn_axis_line(
                 commands, meshes, materials,
-                Vec3::new(offset, 0.0, -grid_size),
-                Vec3::new(offset, 0.0, grid_size),
-                Color::srgb(0.22, 0.22, 0.22),
+                Vec3::new(offset, 0.0, -line_extent),
+                Vec3::new(offset, 0.0,  line_extent),
+                Color::srgb(0.18, 0.18, 0.18),
+                0.015,
             );
         }
     }
 
-    // Main axes — all three share origin (0,0,0) so they intersect correctly
-    // X axis - Red
+    // XYZ axes — each runs through origin in both directions for visual "infinity".
+    // Three 1000-unit cylinders, trivial draw cost.
     spawn_axis_line(
         commands, meshes, materials,
-        Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(grid_size, 0.0, 0.0),
-        Color::srgb(0.9, 0.15, 0.15),
+        Vec3::new(-axis_extent, 0.0, 0.0),
+        Vec3::new( axis_extent, 0.0, 0.0),
+        Color::srgb(0.85, 0.12, 0.12), // X — red
+        0.05,
     );
-    // Y axis - Green
     spawn_axis_line(
         commands, meshes, materials,
-        Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, grid_size, 0.0),
-        Color::srgb(0.15, 0.9, 0.15),
+        Vec3::new(0.0, -axis_extent, 0.0),
+        Vec3::new(0.0,  axis_extent, 0.0),
+        Color::srgb(0.12, 0.85, 0.12), // Y — green
+        0.05,
     );
-    // Z axis - Blue
     spawn_axis_line(
         commands, meshes, materials,
-        Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, grid_size),
-        Color::srgb(0.15, 0.15, 0.9),
+        Vec3::new(0.0, 0.0, -axis_extent),
+        Vec3::new(0.0, 0.0,  axis_extent),
+        Color::srgb(0.12, 0.12, 0.85), // Z — blue
+        0.05,
     );
 }
 
@@ -148,6 +189,7 @@ fn spawn_axis_line(
     start: Vec3,
     end: Vec3,
     color: Color,
+    radius: f32,
 ) {
     let direction = end - start;
     let length = direction.length();
@@ -162,7 +204,7 @@ fn spawn_axis_line(
 
     commands.spawn((
         PbrBundle {
-            mesh: meshes.add(Cylinder::new(0.1, length)),
+            mesh: meshes.add(Cylinder::new(radius, length)),
             material: materials.add(StandardMaterial {
                 base_color: color,
                 unlit: true,

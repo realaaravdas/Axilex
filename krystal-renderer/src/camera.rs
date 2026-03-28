@@ -44,7 +44,7 @@ pub fn camera_controls(
     // Mouse orbit (right click or middle click)
     if mouse_button.pressed(MouseButton::Right) || mouse_button.pressed(MouseButton::Middle) {
         for event in motion_events.read() {
-            orbit.theta -= event.delta.x * 0.005;
+            orbit.theta += event.delta.x * 0.005;  // positive = cursor right → rotate right
             orbit.phi = (orbit.phi - event.delta.y * 0.005).clamp(0.01, std::f32::consts::PI - 0.01);
         }
     }
