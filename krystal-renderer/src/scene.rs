@@ -70,69 +70,74 @@ fn create_axis_grid(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     dotted: bool,
 ) {
-    let grid_size = 100.0;
+    let grid_size = 50.0;
     let grid_spacing = 5.0;
     let line_count = (grid_size / grid_spacing) as i32;
 
-    // Create grid lines on XZ plane (ground plane in Bevy)
-    for i in -line_count..=line_count {
-        let offset = i as f32 * grid_spacing;
-        
-        // Lines parallel to X axis
-        spawn_axis_line(
-            commands,
-            meshes,
-            materials,
-            Vec3::new(-grid_size, 0.0, offset),
-            Vec3::new(grid_size, 0.0, offset),
-            Color::srgba(0.3, 0.3, 0.3, 0.3),
-            dotted,
-        );
-        
-        // Lines parallel to Z axis
-        spawn_axis_line(
-            commands,
-            meshes,
-            materials,
-            Vec3::new(offset, 0.0, -grid_size),
-            Vec3::new(offset, 0.0, grid_size),
-            Color::srgba(0.3, 0.3, 0.3, 0.3),
-            dotted,
-        );
+    if dotted {
+        // Place a small dot at every grid intersection point on the XZ plane
+        let dot_mesh = meshes.add(Sphere::new(1.0).mesh().ico(1).unwrap());
+        let dot_material = materials.add(StandardMaterial {
+            base_color: Color::srgb(0.35, 0.35, 0.35),
+            unlit: true,
+            ..default()
+        });
+        for i in -line_count..=line_count {
+            for j in -line_count..=line_count {
+                let x = i as f32 * grid_spacing;
+                let z = j as f32 * grid_spacing;
+                commands.spawn((
+                    PbrBundle {
+                        mesh: dot_mesh.clone(),
+                        material: dot_material.clone(),
+                        transform: Transform::from_translation(Vec3::new(x, 0.0, z))
+                            .with_scale(Vec3::splat(0.08)),
+                        ..default()
+                    },
+                    AxisGrid,
+                ));
+            }
+        }
+    } else {
+        // Solid grid lines on the XZ plane
+        for i in -line_count..=line_count {
+            let offset = i as f32 * grid_spacing;
+            spawn_axis_line(
+                commands, meshes, materials,
+                Vec3::new(-grid_size, 0.0, offset),
+                Vec3::new(grid_size, 0.0, offset),
+                Color::srgb(0.22, 0.22, 0.22),
+            );
+            spawn_axis_line(
+                commands, meshes, materials,
+                Vec3::new(offset, 0.0, -grid_size),
+                Vec3::new(offset, 0.0, grid_size),
+                Color::srgb(0.22, 0.22, 0.22),
+            );
+        }
     }
 
-    // Main axes (thicker, colored)
+    // Main axes — all three share origin (0,0,0) so they intersect correctly
     // X axis - Red
     spawn_axis_line(
-        commands,
-        meshes,
-        materials,
+        commands, meshes, materials,
         Vec3::new(0.0, 0.0, 0.0),
         Vec3::new(grid_size, 0.0, 0.0),
-        Color::srgb(1.0, 0.0, 0.0),
-        false,
+        Color::srgb(0.9, 0.15, 0.15),
     );
-    
     // Y axis - Green
     spawn_axis_line(
-        commands,
-        meshes,
-        materials,
+        commands, meshes, materials,
         Vec3::new(0.0, 0.0, 0.0),
         Vec3::new(0.0, grid_size, 0.0),
-        Color::srgb(0.0, 1.0, 0.0),
-        false,
+        Color::srgb(0.15, 0.9, 0.15),
     );
-    
     // Z axis - Blue
     spawn_axis_line(
-        commands,
-        meshes,
-        materials,
+        commands, meshes, materials,
         Vec3::new(0.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, grid_size),
-        Color::srgb(0.0, 0.0, 1.0),
-        false,
+        Color::srgb(0.15, 0.15, 0.9),
     );
 }
 
@@ -143,56 +148,31 @@ fn spawn_axis_line(
     start: Vec3,
     end: Vec3,
     color: Color,
-    dotted: bool,
 ) {
-    if dotted {
-        // Create dotted line with small segments
-        let direction = end - start;
-        let length = direction.length();
-        let dot_spacing = 2.0;
-        let dot_size = 0.5;
-        let num_dots = (length / dot_spacing) as usize;
-
-        for i in 0..num_dots {
-            let t = i as f32 * dot_spacing / length;
-            let pos = start + direction * t;
-            
-            commands.spawn((
-                PbrBundle {
-                    mesh: meshes.add(Sphere::new(0.1).mesh().ico(4).unwrap()),
-                    material: materials.add(StandardMaterial {
-                        base_color: color,
-                        unlit: true,
-                        ..default()
-                    }),
-                    transform: Transform::from_translation(pos).with_scale(Vec3::splat(dot_size)),
-                    ..default()
-                },
-                AxisGrid,
-            ));
-        }
-    } else {
-        // Create solid line with a thin cylinder
-        let direction = end - start;
-        let length = direction.length();
-        let midpoint = start + direction * 0.5;
-        
-        commands.spawn((
-            PbrBundle {
-                mesh: meshes.add(Cylinder::new(0.1, length)),
-                material: materials.add(StandardMaterial {
-                    base_color: color,
-                    unlit: true,
-                    ..default()
-                }),
-                transform: Transform::from_translation(midpoint)
-                    .looking_to(direction.normalize(), Vec3::Y)
-                    .with_rotation(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2)),
-                ..default()
-            },
-            AxisGrid,
-        ));
+    let direction = end - start;
+    let length = direction.length();
+    if length < 1e-6 {
+        return;
     }
+    let midpoint = start + direction * 0.5;
+
+    // Bevy's Cylinder is aligned along Y by default.
+    // Rotate from Y to the line's direction so each axis points correctly.
+    let rotation = Quat::from_rotation_arc(Vec3::Y, direction.normalize());
+
+    commands.spawn((
+        PbrBundle {
+            mesh: meshes.add(Cylinder::new(0.1, length)),
+            material: materials.add(StandardMaterial {
+                base_color: color,
+                unlit: true,
+                ..default()
+            }),
+            transform: Transform::from_translation(midpoint).with_rotation(rotation),
+            ..default()
+        },
+        AxisGrid,
+    ));
 }
 
 pub fn update_axis_grid(

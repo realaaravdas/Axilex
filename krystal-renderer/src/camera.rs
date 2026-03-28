@@ -76,19 +76,31 @@ pub fn camera_controls(
         orbit.phi = (orbit.phi + rotate_speed).clamp(0.01, std::f32::consts::PI - 0.01);
     }
 
-    // Keyboard pan
-    let pan_speed = 20.0 * time.delta_seconds();
+    // Keyboard movement - FPS-style, relative to camera's horizontal orientation
+    let move_speed = 20.0 * time.delta_seconds();
+    let fwd = transform.forward();
+    let right = transform.right();
+    // Project camera forward/right onto the horizontal plane so W/S don't fly up/down
+    let horizontal_forward = Vec3::new(fwd.x, 0.0, fwd.z).normalize_or_zero();
+    let horizontal_right = Vec3::new(right.x, 0.0, right.z).normalize_or_zero();
+
     if keyboard.pressed(KeyCode::KeyW) {
-        orbit.focus += Vec3::Y * pan_speed;
+        orbit.focus += horizontal_forward * move_speed;
     }
     if keyboard.pressed(KeyCode::KeyS) {
-        orbit.focus -= Vec3::Y * pan_speed;
+        orbit.focus -= horizontal_forward * move_speed;
     }
     if keyboard.pressed(KeyCode::KeyA) {
-        orbit.focus -= transform.right() * pan_speed;
+        orbit.focus -= horizontal_right * move_speed;
     }
     if keyboard.pressed(KeyCode::KeyD) {
-        orbit.focus += transform.right() * pan_speed;
+        orbit.focus += horizontal_right * move_speed;
+    }
+    if keyboard.pressed(KeyCode::KeyQ) {
+        orbit.focus += Vec3::Y * move_speed;
+    }
+    if keyboard.pressed(KeyCode::KeyE) {
+        orbit.focus -= Vec3::Y * move_speed;
     }
 
     // Mouse zoom

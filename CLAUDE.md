@@ -4,110 +4,106 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-KRYSTALcad is a Python-based CAD language and compiler that provides a custom domain-specific language (DSL) for creating 3D models. The system parses `.cadp` files, transforms them into 3D geometry using CadQuery, and renders them using PyVista.
+KRYSTALcad is a Rust-based CAD DSL toolchain. It consists of two crates:
+- **`krystal-parser`** — Pest-based parser and AST for `.krystal` files
+- **`krystal-renderer`** — Interactive 3D renderer built on Bevy ECS
+
+The language uses `.krystal` files (legacy: `.cadp`). See `docs/LANGUAGE_REFERENCE.md` for the full spec.
 
 ## Development Commands
 
-### Running the Application
 ```bash
-python main.py
-# or
-python -m cad_pilot.renderer.ui.launcher
-```
+# Build parser
+cd krystal-parser && cargo build
 
-### Installing Dependencies
-```bash
-pip install -r requirements.txt
-```
+# Build renderer (release recommended for performance)
+cd krystal-renderer && cargo build --release
 
-### Testing CAD Files
-Test with example files in the `examples/` directory:
-- `examples/simple_box.cadp` - Basic rectangle extrusion
-- `examples/module_test.cadp` - Module system examples  
-- `examples/advanced_example.cadp` - Complex geometry operations
-- `examples/constraints_example.cadp` - Constraint system usage
+# Run renderer with a file
+cd krystal-renderer && cargo run --release -- ../examples/hello_krystal.krystal
+
+# Run parser unit tests
+cd krystal-parser && cargo test
+
+# Run a single test by name
+cd krystal-parser && cargo test <test_name>
+```
 
 ## Architecture
 
-### Core Components
+### Parser (`krystal-parser`)
 
-**Parser (`cad_pilot/parser.py`)**
-- Uses Lark parsing library with custom grammar
-- Parses `.cadp` files into abstract syntax trees
-- Grammar supports shapes, transformations, boolean operations, modules, and constraints
+**Data flow:** source text → `KrystalParser::parse_program()` → `Program` AST → `KrystalSimplifier`
 
-**Transformer (`cad_pilot/transformer.py`)**  
-- Converts AST into 3D geometry objects using the Transformer pattern
-- Manages object stack for nested operations and transformations
-- Handles module system with parameter substitution
-- Implements constraint solving for object positioning
+- `krystal.pest` — Pest grammar (209 lines); the source of truth for language syntax
+- `parser.rs` — Wraps Pest, exposes `parse_program()` and `validate_syntax()`; AST building is currently a stub
+- `ast.rs` — All AST node types: `Statement`, `Shape` (14 variants), `Transform`, `BooleanOperation`, `Constraint` (16 types), `ToleranceSpec`, `HolePattern`, `Value`
+- `simplifier.rs` — Whitespace normalizer; respects `@noformat` / `@noformat_end` markers
 
-**Geometry System (`cad_pilot/core/geometry.py`)**
-- Wraps CadQuery objects with custom Shape class
-- Provides Rectangle (2D) and 3D shapes (Cube, Sphere, Cylinder, Cone)
-- Implements transformations (translate, rotate, scale, mirror)
-- Boolean operations (union, subtract) 
-- PyVista mesh conversion for rendering
+### Renderer (`krystal-renderer`)
 
-**Scene Management (`cad_pilot/core/scene.py`)**
-- Manages collections of geometry objects
-- Tracks current object context
+Uses Bevy's Entity Component System. At startup, `geometry.rs` calls the parser once to read the scene; then interactive systems run each frame.
 
-**UI System (`cad_pilot/renderer/ui/`)**
-- CustomTkinter-based GUI with launcher and render views
-- PyVista widget integration for 3D visualization
-- File loading and export functionality
+**Startup path:** `main.rs` → `setup_scene()` → `parse_and_create_geometry()` → spawns Bevy entities
 
-### Language Features
+**Per-frame systems:** `camera_controls`, `object_interaction`, `apply_constraints`, `check_collisions`, `handle_background_change`, `update_axis_grid`
 
-**Basic Shapes:**
-```cadp
-rect(x, y, width, height)
-cube(x, y, z, size) 
-sphere(x, y, z, radius)
-cylinder(x, y, z, radius, height)
-cone(x, y, z, radius1, radius2, height)
+**ECS components:** `KrystalObject`, `Selectable`, `Selected`, `CollisionRadius`, `Constraint`, `OrbitCamera`
+
+**Coordinate system:** Krystal uses right-handed XYZ (Y-up); renderer converts to Bevy's XZY at entity spawn time (`geometry.rs:64–68`).
+
+**Implemented shapes:** `cube`, `sphere`, `cylinder`, `cone`. All other AST shapes exist but are not yet rendered.
+
+### Inter-crate dependency
+
+`krystal-renderer/Cargo.toml` references `krystal_parser` as a local path dependency (`../krystal-parser`). Changes to the parser crate's public API will break the renderer.
+
+## Language Syntax (Quick Reference)
+
+```krystal
+# Named shape
+cube(0, 0, 0, 20) as main_box
+
+# Transformation block
+translate(10, 0, 0) {
+    sphere(0, 0, 0, 5)
+}
+
+# Boolean operation
+subtract {
+    use main_box
+    cylinder(10, 10, 0, 5, 20)
+}
+
+# Module definition and use
+module bracket(width, height) {
+    cube(0, 0, 0, width)
+}
+use bracket(15, 10)
+
+# Constraints
+center_on_x(top_sphere, main_box)
+distance_z(main_box, top_sphere, 5)
+fixed(main_box)
 ```
 
-**Transformations:**
-```cadp
-translate(x, y, z) { ... }
-rotate(angle, ax, ay, az) { ... }
-scale(x, y, z) { ... }
-mirror(nx, ny, nz) { ... }
-```
+## Interactive Renderer Controls
 
-**Boolean Operations:**
-```cadp
-union { ... }
-subtract { ... }
-```
+| Action | Control |
+|--------|---------|
+| Orbit | Right-click drag or arrow keys |
+| Pan (mouse) | Shift + right-click drag |
+| Move forward/back | W / S (camera-relative, horizontal) |
+| Strafe left/right | A / D |
+| Move up/down | Q / E |
+| Zoom | Scroll wheel or +/- |
+| Select object | Left click |
+| Move selected | I/K (Z), J/L (X), U/O (Y) |
+| Cycle background | B |
+| Toggle axis grid | G |
+| Toggle axis style (dots/lines) | X |
+| Exit | ESC |
 
-**Module System:**
-```cadp
-module name(param1, param2) { ... }
-use name(value1, value2)
-```
+## Implementation Status
 
-**Constraints:**
-- `align_x/y/z(obj1, obj2)` - Align object edges
-- `center_on_x/y/z(obj1, obj2)` - Center objects
-- `distance_x/y/z(obj1, obj2, dist)` - Set distances
-- `fixed(obj)` - Mark object as immovable
-
-### Key Implementation Details
-
-- **Object Stack Management**: The transformer uses a stack-based approach to handle nested transformations and boolean operations
-- **CadQuery Integration**: All 3D operations are backed by CadQuery for solid modeling
-- **VTK Rendering**: PyVista provides 3D visualization through VTK
-- **Temporary File Handling**: VTP format used for CadQuery to PyVista mesh conversion
-- **Module Resolution**: Variables in module bodies are resolved at call time through AST transformation
-
-### Export Capabilities
-
-The exporter (`cad_pilot/exporter.py`) supports:
-- STL format for 3D printing
-- STEP format for CAD interchange  
-- DXF format for 2D drawings
-
-All exports combine multiple objects into single output files using CadQuery's export system.
+The parser's AST is fully defined but `parse_program()` returns a stub `Program`. Only `validate_syntax()` (Pest-based) is complete. The renderer implements shapes, camera, object interaction, sphere-based collision, and basic constraints. Boolean ops, full transforms, module instantiation, and advanced shapes are planned.
